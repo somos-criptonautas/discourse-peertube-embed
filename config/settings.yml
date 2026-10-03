@@ -1,0 +1,30 @@
+discourse_peertube_embed:
+  peertube_embed_enabled:
+    default: false
+    client: true
+  peertube_embed_instances:
+    type: host_list
+    default: ""
+    client: true
+  peertube_embed_click_to_play:
+    default: true
+    client: true
+  peertube_embed_theater_mode:
+    default: true
+    client: true
+  peertube_embed_composer_button:
+    default: true
+    client: true
+  peertube_embed_topic_list_thumbnails:
+    default: true
+    client: true
+  peertube_embed_videos_page:
+    default: true
+    client: true
+  peertube_embed_live_refresh_seconds:
+    default: 60
+    min: 15
+    max: 600
+    client: true
+  peertube_embed_sync_event_livestream_hosts:
+    default: true

@@ -1,0 +1,41 @@
+en:
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          discourse_peertube_embed: "PeerTube Embed"
+  js:
+    peertube_embed:
+      play: "Play %{title}"
+      live: "Live"
+      live_soon: "Live soon"
+      live_ended: "Live ended"
+      viewers:
+        one: "%{count} viewer"
+        other: "%{count} viewers"
+      playlist_count:
+        one: "%{count} video"
+        other: "%{count} videos"
+      theater_enter: "Theater mode"
+      theater_exit: "Exit theater mode"
+      open_on_instance: "Open on %{host}"
+      composer:
+        button: "Insert PeerTube video"
+        modal_title: "Insert a PeerTube video"
+        url_label: "Video, live or playlist URL"
+        url_placeholder: "https://tube.example.org/w/…"
+        allowed_instances: "Allowed instances: %{instances}"
+        invalid_url: "This is not a video, live or playlist URL from an allowed PeerTube instance."
+        insert: "Insert"
+      page:
+        title: "Videos"
+        sidebar_title: "PeerTube videos and live streams"
+        filter_all: "All"
+        filter_live: "Live"
+        all_categories: "All categories"
+        empty: "No videos yet."
+        empty_live: "Nothing is live right now."
+        load_more: "Load more"
+        replies:
+          one: "%{count} reply"
+          other: "%{count} replies"

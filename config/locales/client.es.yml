@@ -1,0 +1,41 @@
+es:
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          discourse_peertube_embed: "PeerTube Embed"
+  js:
+    peertube_embed:
+      play: "Reproducir %{title}"
+      live: "En vivo"
+      live_soon: "En vivo pronto"
+      live_ended: "Transmisión finalizada"
+      viewers:
+        one: "%{count} espectador"
+        other: "%{count} espectadores"
+      playlist_count:
+        one: "%{count} video"
+        other: "%{count} videos"
+      theater_enter: "Modo cine"
+      theater_exit: "Salir del modo cine"
+      open_on_instance: "Abrir en %{host}"
+      composer:
+        button: "Insertar video de PeerTube"
+        modal_title: "Insertar un video de PeerTube"
+        url_label: "URL del video, vivo o lista"
+        url_placeholder: "https://tube.example.org/w/…"
+        allowed_instances: "Instancias permitidas: %{instances}"
+        invalid_url: "No es una URL de video, vivo o lista de una instancia PeerTube permitida."
+        insert: "Insertar"
+      page:
+        title: "Videos"
+        sidebar_title: "Videos y transmisiones en vivo de PeerTube"
+        filter_all: "Todos"
+        filter_live: "En vivo"
+        all_categories: "Todas las categorías"
+        empty: "Todavía no hay videos."
+        empty_live: "No hay nada en vivo ahora."
+        load_more: "Cargar más"
+        replies:
+          one: "%{count} respuesta"
+          other: "%{count} respuestas"

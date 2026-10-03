@@ -1,0 +1,11 @@
+es:
+  site_settings:
+    peertube_embed_enabled: "Insertar videos y transmisiones en vivo de PeerTube de las instancias listadas abajo."
+    peertube_embed_instances: "Dominios de instancias PeerTube cuyos enlaces se insertan (por ejemplo tube.example.org). Volvé a procesar (rebake) los posts existentes después de cambiar esta lista."
+    peertube_embed_click_to_play: "Mostrar una miniatura y cargar el reproductor de PeerTube solo al hacer clic."
+    peertube_embed_theater_mode: "Mostrar un botón que agranda el reproductor más allá de la columna del post."
+    peertube_embed_composer_button: "Agregar un botón en el editor para insertar un video de PeerTube."
+    peertube_embed_topic_list_thumbnails: "Mostrar la miniatura del video junto a los temas que contienen un video de PeerTube."
+    peertube_embed_videos_page: "Activar la galería /videos y su enlace en la barra lateral."
+    peertube_embed_live_refresh_seconds: "Cada cuántos segundos se actualizan el estado y los espectadores de los videos en vivo."
+    peertube_embed_sync_event_livestream_hosts: "Agregar las instancias PeerTube a los hosts permitidos de transmisiones de eventos, para que la URL de transmisión de un evento pueda apuntar a PeerTube."

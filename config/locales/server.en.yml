@@ -1,0 +1,11 @@
+en:
+  site_settings:
+    peertube_embed_enabled: "Embed PeerTube videos and live streams from the instances listed below."
+    peertube_embed_instances: "PeerTube instance domains whose links are embedded (for example tube.example.org). Rebake existing posts after changing this list."
+    peertube_embed_click_to_play: "Show a thumbnail and only load the PeerTube player when it is clicked."
+    peertube_embed_theater_mode: "Show a button that enlarges the player beyond the post column."
+    peertube_embed_composer_button: "Add a composer toolbar button to insert a PeerTube video."
+    peertube_embed_topic_list_thumbnails: "Show the video thumbnail next to topics that contain a PeerTube video."
+    peertube_embed_videos_page: "Enable the /videos gallery page and its sidebar link."
+    peertube_embed_live_refresh_seconds: "How often, in seconds, the live state and viewer count of live videos are refreshed."
+    peertube_embed_sync_event_livestream_hosts: "Add the PeerTube instances to the events livestream allowed hosts so an event's livestream URL can point to PeerTube."
