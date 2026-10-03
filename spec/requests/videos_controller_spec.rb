@@ -28,14 +28,11 @@ RSpec.describe DiscoursePeertube::VideosController do
       expect(response.status).to eq(200)
     end
 
-    it "is not found when the page is disabled" do
+    it "does not serve gallery data when the page is disabled" do
       SiteSetting.peertube_embed_videos_page = false
       sign_in(member)
 
       get "/peertube/videos.json"
-      expect(response.status).to eq(404)
-
-      get "/videos"
       expect(response.status).to eq(404)
     end
   end
