@@ -15,8 +15,11 @@ export default class PeertubeVideosController extends Controller {
   @tracked loadingMore = false;
 
   page = 0;
+  #generation = 0;
 
   reset(model) {
+    this.#generation += 1;
+    this.loadingMore = false;
     this.videos = model.videos;
     this.more = model.more;
     this.categories = model.categories || this.categories;
@@ -40,6 +43,7 @@ export default class PeertubeVideosController extends Controller {
     }
 
     this.loadingMore = true;
+    const generation = this.#generation;
     try {
       const result = await ajax("/peertube/videos.json", {
         data: {
@@ -48,13 +52,19 @@ export default class PeertubeVideosController extends Controller {
           page: this.page + 1,
         },
       });
+      if (generation !== this.#generation) {
+        // The filters changed while loading.
+        return;
+      }
       this.page += 1;
       this.videos = [...this.videos, ...result.videos];
       this.more = result.more;
     } catch (error) {
       popupAjaxError(error);
     } finally {
-      this.loadingMore = false;
+      if (generation === this.#generation) {
+        this.loadingMore = false;
+      }
     }
   }
 }

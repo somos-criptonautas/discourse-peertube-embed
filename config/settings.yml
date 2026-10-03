@@ -23,7 +23,7 @@ discourse_peertube_embed:
     client: true
   peertube_embed_live_refresh_seconds:
     default: 60
-    min: 15
+    min: 60
     max: 600
     client: true
   peertube_embed_sync_event_livestream_hosts:

@@ -8,14 +8,36 @@ module ::DiscoursePeertube
 
     belongs_to :post
 
+    # Videos in posts that every reader of the topic can see.
+    scope :in_visible_posts,
+          -> do
+            joins(:post)
+              .where(posts: { deleted_at: nil, hidden: false })
+              .where.not(posts: { post_type: Post.types[:whisper] })
+          end
+
+    # Ids of the first video of each topic. With `live_only`, the first live
+    # or upcoming one, preferring a stream that is on air.
+    def self.first_ids_per_topic(live_only: false)
+      scope = in_visible_posts
+      order = "posts.topic_id, posts.post_number, peertube_videos.position"
+
+      if live_only
+        scope = scope.where(live_state: %w[live waiting])
+        order =
+          "posts.topic_id, peertube_videos.live_state = 'live' DESC, posts.post_number, peertube_videos.position"
+      end
+
+      scope.select("DISTINCT ON (posts.topic_id) peertube_videos.id").order(Arel.sql(order))
+    end
+
     # { topic_id => Video } with the first PeerTube video of each topic.
     def self.first_per_topic(topic_ids)
       return {} if topic_ids.blank?
 
-      joins(:post)
-        .where(posts: { topic_id: topic_ids, deleted_at: nil })
-        .select("DISTINCT ON (posts.topic_id) peertube_videos.*, posts.topic_id AS topic_id")
-        .order("posts.topic_id, posts.post_number, peertube_videos.position")
+      where(id: first_ids_per_topic.where(posts: { topic_id: topic_ids }))
+        .joins(:post)
+        .select("peertube_videos.*, posts.topic_id AS topic_id")
         .index_by(&:topic_id)
     end
 

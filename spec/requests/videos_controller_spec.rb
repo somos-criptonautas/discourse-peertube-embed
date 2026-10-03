@@ -56,6 +56,35 @@ RSpec.describe DiscoursePeertube::VideosController do
       expect(response.parsed_body["videos"].map { |v| v["uuid"] }).to eq(%w[public])
     end
 
+    it "excludes whispers and hidden posts" do
+      public_post.update_columns(post_type: Post.types[:whisper])
+      get "/peertube/videos.json"
+      expect(response.parsed_body["videos"]).to be_empty
+
+      public_post.update_columns(post_type: Post.types[:regular], hidden: true)
+      get "/peertube/videos.json"
+      expect(response.parsed_body["videos"]).to be_empty
+    end
+
+    it "finds a live stream that is not the first video of its topic" do
+      DiscoursePeertube::PostIndexer.index(
+        public_post,
+        Nokogiri::HTML5.fragment(onebox_html(uuid: "recording")),
+      )
+      reply = Fabricate(:post, topic: public_post.topic)
+      DiscoursePeertube::PostIndexer.index(
+        reply,
+        Nokogiri::HTML5.fragment(onebox_html(uuid: "on-air", live: true)),
+      )
+      DiscoursePeertube::Video.where(uuid: "on-air").update_all(live_state: "live")
+
+      get "/peertube/videos.json", params: { filter: "live" }
+      expect(response.parsed_body["videos"].map { |v| v["uuid"] }).to eq(%w[on-air])
+
+      get "/peertube/videos.json"
+      expect(response.parsed_body["videos"].map { |v| v["uuid"] }).to eq(%w[recording])
+    end
+
     it "excludes deleted posts" do
       public_post.trash!
       get "/peertube/videos.json"

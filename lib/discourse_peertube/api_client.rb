@@ -65,6 +65,7 @@ module ::DiscoursePeertube
     def self.absolute_url(host, path)
       return if path.blank?
       return path if path.start_with?("https://")
+      return if path.match?(/\A[a-z][a-z0-9+.-]*:/i)
 
       "https://#{host}#{path.start_with?("/") ? path : "/#{path}"}"
     end

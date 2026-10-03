@@ -25,6 +25,12 @@ RSpec.describe Jobs::DiscoursePeertube::RefreshLiveStatus do
     expect(video.live_checked_at).to be_present
   end
 
+  it "skips instances that are no longer allowed" do
+    SiteSetting.peertube_embed_instances = "other.example.org"
+
+    expect(described_class.new.due_keys).to be_empty
+  end
+
   it "skips videos checked recently" do
     DiscoursePeertube::Video.update_all(live_state: "live", live_checked_at: 5.seconds.ago)
 

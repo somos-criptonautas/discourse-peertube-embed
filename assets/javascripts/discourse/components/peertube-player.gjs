@@ -2,6 +2,7 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import { schedule } from "@ember/runloop";
 import { service } from "@ember/service";
 import { modifier } from "ember-modifier";
 import DButton from "discourse/ui-kit/d-button";
@@ -31,6 +32,14 @@ export default class PeertubePlayer extends Component {
     document.addEventListener("keydown", onKeydown);
     return () => document.removeEventListener("keydown", onKeydown);
   });
+
+  constructor() {
+    super(...arguments);
+    if (this.isLoaded) {
+      // No click when the player loads right away.
+      schedule("afterRender", () => this.args.onLoaded?.());
+    }
+  }
 
   get video() {
     return this.args.video;

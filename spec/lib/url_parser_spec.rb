@@ -42,6 +42,7 @@ RSpec.describe DiscoursePeertube::UrlParser do
   it "ignores other hosts, ports and paths" do
     expect(described_class.parse("https://evil.example/w/abc")).to be_nil
     expect(described_class.parse("https://tube.example.org:8443/w/abc")).to be_nil
+    expect(described_class.parse("https://tube.example.org:80/w/abc")).to be_nil
     expect(described_class.parse("https://tube.example.org/about")).to be_nil
     expect(described_class.parse("not a url")).to be_nil
   end

@@ -28,7 +28,8 @@ module ::DiscoursePeertube
             )
           end
 
-        Video.insert_all(rows)
+        # Idempotent if the same post is processed twice at once.
+        Video.upsert_all(rows, unique_by: %i[post_id host uuid])
       end
     end
 

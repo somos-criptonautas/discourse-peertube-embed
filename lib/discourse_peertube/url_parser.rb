@@ -33,7 +33,7 @@ module ::DiscoursePeertube
     def self.parse(url)
       uri = URI.parse(url.to_s.strip)
       return if !uri.is_a?(URI::HTTP) || !allowed_host?(uri.host)
-      return if uri.port && ![80, 443].include?(uri.port)
+      return if uri.port != uri.default_port
 
       PATTERNS.each do |kind, patterns|
         patterns.each do |pattern|

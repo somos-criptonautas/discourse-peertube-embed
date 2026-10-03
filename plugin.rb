@@ -48,6 +48,11 @@ after_initialize do
     end
   end
 
+  # Soft-deleted posts are filtered in queries; this covers hard deletes.
+  add_model_callback(:post, :after_destroy) do
+    DiscoursePeertube::Video.where(post_id: id).delete_all
+  end
+
   add_to_class(:topic, :peertube_video) { @peertube_video }
   add_to_class(:topic, :peertube_video=) { |video| @peertube_video = video }
 

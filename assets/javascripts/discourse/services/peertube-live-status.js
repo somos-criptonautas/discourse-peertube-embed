@@ -64,7 +64,10 @@ export default class PeertubeLiveStatus extends Service {
     try {
       this.#pending = ajax("/peertube/live.json", { data: { keys } });
       const result = await this.#pending;
-      this.statuses = { ...this.statuses, ...result.live };
+      // Keys the server does not know are stored as null so mounting them
+      // again does not trigger another immediate request.
+      const missing = Object.fromEntries(keys.map((key) => [key, null]));
+      this.statuses = { ...this.statuses, ...missing, ...result.live };
     } catch {
       // Keep the last known state; the next tick retries.
     } finally {

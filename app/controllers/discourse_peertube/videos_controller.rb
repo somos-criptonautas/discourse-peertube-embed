@@ -17,18 +17,18 @@ module ::DiscoursePeertube
     # GET /peertube/videos.json?filter=all|live&category_id=&page=
     def index
       page = [params[:page].to_i, 0].max
-      scope = visible_first_videos
-      scope = scope.where(live_state: %w[live waiting]) if params[:filter] == "live"
+      live_only = params[:filter] == "live"
+      scope = visible_videos(live_only: live_only)
 
       if params[:category_id].present?
         scope = scope.merge(Topic.in_category_and_subcategories(params[:category_id].to_i))
       end
 
       order =
-        if params[:filter] == "live"
-          "peertube_videos.live_state = 'live' DESC, topics.created_at DESC"
+        if live_only
+          "peertube_videos.live_state = 'live' DESC, topics.created_at DESC, topics.id DESC"
         else
-          "topics.created_at DESC"
+          "topics.created_at DESC, topics.id DESC"
         end
 
       records =
@@ -81,17 +81,10 @@ module ::DiscoursePeertube
       raise Discourse::NotFound if !SiteSetting.peertube_embed_videos_page
     end
 
-    # The first video of every topic the current user can see.
-    def visible_first_videos
-      first_ids =
-        Video
-          .joins(:post)
-          .where(posts: { deleted_at: nil })
-          .select("DISTINCT ON (posts.topic_id) peertube_videos.id")
-          .order("posts.topic_id, posts.post_number, peertube_videos.position")
-
+    # One video per topic the current user can see.
+    def visible_videos(live_only: false)
       Video
-        .where(id: first_ids)
+        .where(id: Video.first_ids_per_topic(live_only: live_only))
         .joins(post: :topic)
         .merge(Topic.listable_topics.visible.secured(guardian))
         .where(topics: { deleted_at: nil })
@@ -109,7 +102,7 @@ module ::DiscoursePeertube
     end
 
     def categories_json
-      category_ids = visible_first_videos.distinct.pluck("topics.category_id").compact
+      category_ids = visible_videos.distinct.pluck("topics.category_id").compact
 
       Category
         .secured(guardian)

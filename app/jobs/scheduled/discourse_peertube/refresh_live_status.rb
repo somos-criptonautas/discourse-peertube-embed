@@ -6,7 +6,7 @@ module Jobs
     class RefreshLiveStatus < ::Jobs::Scheduled
       every 1.minute
 
-      MAX_PER_RUN = 20
+      MAX_PER_RUN = 30
       RECENT_POSTS = 90.days
       ENDED_RECHECK = 6.hours
 
@@ -15,7 +15,6 @@ module Jobs
 
         due_keys.each do |host, uuid|
           parsed = ::DiscoursePeertube::UrlParser::Result.new(host: host, kind: :video, id: uuid)
-          next if !::DiscoursePeertube::UrlParser.allowed_host?(host)
 
           data = ::DiscoursePeertube::ApiClient.fetch_video(parsed)
           videos = ::DiscoursePeertube::Video.where(host: host, uuid: uuid)
@@ -38,7 +37,7 @@ module Jobs
 
         ::DiscoursePeertube::Video
           .joins(:post)
-          .where(is_live: true, kind: "video")
+          .where(is_live: true, kind: "video", host: ::DiscoursePeertube::UrlParser.instances)
           .where(posts: { deleted_at: nil })
           .where("posts.created_at > ?", RECENT_POSTS.ago)
           .where(

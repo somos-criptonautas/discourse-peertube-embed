@@ -1,5 +1,7 @@
 # discourse-peertube-embed
 
+**English** · [Español](README.es.md)
+
 Native PeerTube support for Discourse: videos, live streams and playlists from your PeerTube instances become click-to-play players, with live badges, a `/videos` gallery, topic list thumbnails and event livestream support.
 
 ```
@@ -23,7 +25,7 @@ Native PeerTube support for Discourse: videos, live streams and playlists from y
 - **Theater mode**: enlarges the player without reloading it (Esc to exit).
 - **Composer button**: paste a PeerTube URL; it is checked against the allowed instances and inserted on its own line.
 - **Topic list thumbnails** for topics that contain a PeerTube video, with a ▶ or LIVE overlay.
-- **`/videos` gallery** with All / Live / category filters and a sidebar link. Videos are indexed automatically when posts are cooked; no tag needed. Respects category permissions.
+- **`/videos` gallery** with All / Live / category filters and a sidebar link. Videos are indexed automatically when posts are cooked; no tag needed. Respects category permissions and skips whispers and hidden posts.
 - **Events**: PeerTube instances are added to the events plugin's livestream allowed hosts, so an event's livestream URL can be a PeerTube live and is shown on the event card next to the event chat.
 - Emails, RSS and crawlers get a linked thumbnail and title.
 
@@ -48,7 +50,7 @@ Requires a recent Discourse (2026.9+).
 | `peertube_embed_composer_button` | true | Composer toolbar button. |
 | `peertube_embed_topic_list_thumbnails` | true | Thumbnails in topic lists. |
 | `peertube_embed_videos_page` | true | `/videos` gallery and sidebar link. |
-| `peertube_embed_live_refresh_seconds` | 60 | Live state refresh interval. |
+| `peertube_embed_live_refresh_seconds` | 60 | Live state refresh interval (min. 60). |
 | `peertube_embed_sync_event_livestream_hosts` | true | Add instances to the events livestream allowed hosts. |
 
 After adding an instance, rebake the posts that already link to it so they get the new onebox and are indexed:
@@ -74,3 +76,7 @@ bundle exec rubocop
 ```
 
 Specs run in a Discourse checkout: `LOAD_PLUGINS=1 bin/rspec plugins/discourse-peertube-embed/spec`.
+
+## License
+
+[MIT](LICENSE) © 2026 Criptonautas
