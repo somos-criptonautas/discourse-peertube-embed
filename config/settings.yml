@@ -21,6 +21,17 @@ discourse_peertube_embed:
   peertube_embed_videos_page:
     default: true
     client: true
+  peertube_embed_home_instance:
+    default: ""
+    client: true
+  peertube_embed_videos_default_tab:
+    type: enum
+    default: all
+    choices:
+      - all
+      - community
+      - instance
+    client: true
   peertube_embed_live_refresh_seconds:
     default: 60
     min: 60

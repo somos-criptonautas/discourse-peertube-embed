@@ -36,6 +36,31 @@ es:
         empty: "Todavía no hay videos."
         empty_live: "No hay nada en vivo ahora."
         load_more: "Cargar más"
+        tab_all: "Todo"
+        tab_community: "Comunidad"
+        tab_instance: "Instancia"
+        badge_community: "Comunidad"
+        badge_instance: "Instancia"
+        sort_latest: "Lo último"
+        sort_trending: "Tendencia"
+        sort_random: "Al azar"
+        sort_live: "En vivo"
+        channels: "Canales"
+        all_channels: "Todos los canales"
+        empty_instance: "Todavía no hay videos en la instancia."
+        instance_unavailable: "No se pudo conectar con la instancia PeerTube. Probá más tarde."
+        back: "Volver a videos"
+        followers:
+          one: "%{count} seguidor"
+          other: "%{count} seguidores"
+        views:
+          one: "%{count} vista"
+          other: "%{count} vistas"
         replies:
           one: "%{count} respuesta"
           other: "%{count} respuestas"
+      modal:
+        open_topic:
+          one: "Ver en el foro · %{count} respuesta"
+          other: "Ver en el foro · %{count} respuestas"
+        discuss: "Comentar en el foro"

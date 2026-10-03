@@ -94,6 +94,62 @@ RSpec.describe DiscoursePeertube::VideosController do
     end
   end
 
+  describe "instance endpoints" do
+    before { Discourse.cache.clear }
+
+    it "links instance videos to the forum topics that posted them" do
+      stub_instance_videos(
+        [
+          instance_video_json(uuid: "public", published_at: "2026-10-01T10:00:00.000Z"),
+          instance_video_json(uuid: "private", published_at: "2026-09-30T10:00:00.000Z"),
+          instance_video_json(uuid: "new", published_at: "2026-09-29T10:00:00.000Z"),
+        ],
+      )
+
+      get "/peertube/instance/videos.json", params: { sort: "latest" }
+
+      videos = response.parsed_body["videos"].index_by { |v| v["uuid"] }
+      expect(videos["public"]["topic"]["id"]).to eq(public_post.topic_id)
+      expect(videos["private"]["topic"]).to be_nil
+      expect(videos["new"]["source"]).to eq("instance")
+      expect(videos["new"]["watch_url"]).to eq("https://#{PeertubeSpecHelpers::HOST}/w/new")
+    end
+
+    it "reports an unreachable instance" do
+      stub_request(:get, %r{/api/v1/videos\?}).to_return(status: 500)
+
+      get "/peertube/instance/videos.json"
+      expect(response.parsed_body["instance_unavailable"]).to eq(true)
+    end
+
+    it "returns 404 for an unknown channel" do
+      get "/peertube/instance/channel.json", params: { name: "../x" }
+      expect(response.status).to eq(404)
+    end
+
+    it "merges community and instance videos by date without repeats" do
+      public_post.topic.update_columns(created_at: Time.zone.parse("2026-10-02T00:00:00Z"))
+      stub_instance_videos(
+        [
+          instance_video_json(uuid: "newest", published_at: "2026-10-03T00:00:00.000Z"),
+          instance_video_json(uuid: "public", published_at: "2026-10-01T12:00:00.000Z"),
+          instance_video_json(uuid: "oldest", published_at: "2026-09-01T00:00:00.000Z"),
+        ],
+        total: 3,
+      )
+
+      get "/peertube/mixed.json"
+
+      body = response.parsed_body
+      expect(body["videos"].map { |v| [v["source"], v["uuid"]] }).to eq(
+        [%w[instance newest], %w[community public], %w[instance oldest]],
+      )
+      expect(body["community_offset"]).to eq(1)
+      expect(body["instance_offset"]).to eq(3)
+      expect(body["more"]).to eq(false)
+    end
+  end
+
   describe "topic list" do
     it "serializes the first video of each topic" do
       get "/latest.json"

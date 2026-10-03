@@ -26,6 +26,7 @@ require_relative "lib/discourse_peertube/engine"
 require_relative "lib/discourse_peertube/url_parser"
 require_relative "lib/discourse_peertube/api_client"
 require_relative "lib/discourse_peertube/onebox_renderer"
+require_relative "lib/discourse_peertube/instance_client"
 require_relative "lib/onebox/engine/peertube_onebox"
 
 after_initialize do

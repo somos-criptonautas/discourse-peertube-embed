@@ -7,5 +7,7 @@ es:
     peertube_embed_composer_button: "Agregar un botón en el editor para insertar un video de PeerTube."
     peertube_embed_topic_list_thumbnails: "Mostrar la miniatura del video junto a los temas que contienen un video de PeerTube."
     peertube_embed_videos_page: "Activar la galería /videos y su enlace en la barra lateral."
+    peertube_embed_home_instance: "Instancia PeerTube que se muestra en la pestaña Instancia de /videos. Dejalo vacío para usar la primera instancia permitida."
+    peertube_embed_videos_default_tab: "Pestaña que abre primero /videos: all (comunidad e instancia mezcladas), community o instance."
     peertube_embed_live_refresh_seconds: "Cada cuántos segundos se actualizan el estado y los espectadores de los videos en vivo."
     peertube_embed_sync_event_livestream_hosts: "Agregar las instancias PeerTube a los hosts permitidos de transmisiones de eventos, para que la URL de transmisión de un evento pueda apuntar a PeerTube."

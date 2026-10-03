@@ -15,7 +15,9 @@ import PeertubeLiveBadge from "./peertube-live-badge";
 export default class PeertubePlayer extends Component {
   @service siteSettings;
 
-  @tracked isLoaded = !this.siteSettings.peertube_embed_click_to_play;
+  @tracked
+  isLoaded =
+    this.args.startLoaded || !this.siteSettings.peertube_embed_click_to_play;
   @tracked isTheater = false;
 
   // Esc leaves theater mode; only listening while it is active.
@@ -55,7 +57,8 @@ export default class PeertubePlayer extends Component {
 
   get embedSrc() {
     return embedUrl(this.video, {
-      autoplay: this.siteSettings.peertube_embed_click_to_play,
+      autoplay:
+        this.args.startLoaded || this.siteSettings.peertube_embed_click_to_play,
     });
   }
 
@@ -70,7 +73,11 @@ export default class PeertubePlayer extends Component {
   }
 
   get showTheater() {
-    return this.siteSettings.peertube_embed_theater_mode && this.isLoaded;
+    return (
+      this.siteSettings.peertube_embed_theater_mode &&
+      this.isLoaded &&
+      !this.args.hideTheater
+    );
   }
 
   @action

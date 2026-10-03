@@ -13,22 +13,28 @@ module ::DiscoursePeertube
     end
 
     def self.fetch_video(parsed)
-      json = get_json(parsed.host, "/api/v1/videos/#{parsed.id}")
+      normalize_video(parsed.host, get_json(parsed.host, "/api/v1/videos/#{parsed.id}"))
+    end
+
+    # Shared by single-video lookups and instance video lists.
+    def self.normalize_video(host, json)
       return if !valid?(json)
 
       {
         kind: "video",
-        host: parsed.host,
+        host: host,
         uuid: json["uuid"],
         title: string(json["name"]),
         duration: integer(json["duration"]),
         is_live: !!json["isLive"],
         live_state: live_state(json),
         viewers: integer(json["viewers"]),
+        views: integer(json["views"]),
         thumbnail_url:
-          absolute_url(parsed.host, string(json["previewPath"]) || string(json["thumbnailPath"])),
+          absolute_url(host, string(json["previewPath"]) || string(json["thumbnailPath"])),
         channel_name:
           string(dig(json, "channel", "displayName") || dig(json, "account", "displayName")),
+        channel_handle: string(dig(json, "channel", "name")),
         published_at: string(json["originallyPublishedAt"] || json["publishedAt"]),
       }
     end
@@ -82,6 +88,16 @@ module ::DiscoursePeertube
 
     def self.dig(json, *keys)
       keys.reduce(json) { |node, key| node.is_a?(Hash) ? node[key] : nil }
+    end
+
+    # Largest avatar or banner; `fileUrl` is PeerTube >= 7.1, `path` before.
+    def self.image_url(host, images)
+      return if !images.is_a?(Array)
+
+      image = images.select { |i| i.is_a?(Hash) }.max_by { |i| integer(i["width"]) }
+      return if image.nil?
+
+      absolute_url(host, string(image["fileUrl"]) || string(image["path"]))
     end
 
     def self.absolute_url(host, path)

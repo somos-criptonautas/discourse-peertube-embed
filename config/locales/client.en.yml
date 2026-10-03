@@ -36,6 +36,31 @@ en:
         empty: "No videos yet."
         empty_live: "Nothing is live right now."
         load_more: "Load more"
+        tab_all: "All"
+        tab_community: "Community"
+        tab_instance: "Instance"
+        badge_community: "Community"
+        badge_instance: "Instance"
+        sort_latest: "Latest"
+        sort_trending: "Trending"
+        sort_random: "Random"
+        sort_live: "Live"
+        channels: "Channels"
+        all_channels: "All channels"
+        empty_instance: "No videos on the instance yet."
+        instance_unavailable: "The PeerTube instance could not be reached. Try again later."
+        back: "Back to videos"
+        followers:
+          one: "%{count} follower"
+          other: "%{count} followers"
+        views:
+          one: "%{count} view"
+          other: "%{count} views"
         replies:
           one: "%{count} reply"
           other: "%{count} replies"
+      modal:
+        open_topic:
+          one: "View in forum · %{count} reply"
+          other: "View in forum · %{count} replies"
+        discuss: "Discuss in forum"

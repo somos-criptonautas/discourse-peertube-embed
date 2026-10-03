@@ -7,5 +7,7 @@ en:
     peertube_embed_composer_button: "Add a composer toolbar button to insert a PeerTube video."
     peertube_embed_topic_list_thumbnails: "Show the video thumbnail next to topics that contain a PeerTube video."
     peertube_embed_videos_page: "Enable the /videos gallery page and its sidebar link."
+    peertube_embed_home_instance: "PeerTube instance shown in the /videos Instance tab. Leave empty to use the first allowed instance."
+    peertube_embed_videos_default_tab: "Tab opened first on /videos: all (community and instance mixed), community or instance."
     peertube_embed_live_refresh_seconds: "How often, in seconds, the live state and viewer count of live videos are refreshed."
     peertube_embed_sync_event_livestream_hosts: "Add the PeerTube instances to the events livestream allowed hosts so an event's livestream URL can point to PeerTube."
