@@ -32,8 +32,13 @@ RSpec.describe DiscoursePeertube::VideosController do
       SiteSetting.peertube_embed_videos_page = false
       sign_in(member)
 
+      expect(Rails.application.routes.recognize_path("/videos")).to include(
+        controller: "discourse_peertube/videos",
+        action: "page",
+      )
+
       get "/videos"
-      expect(response.status).to eq(404)
+      expect([response.status, response.body.to_s[0, 3000]]).to eq([404, "(diagnostic)"])
 
       get "/peertube/videos.json"
       expect(response.status).to eq(404)
