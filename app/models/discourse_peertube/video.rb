@@ -67,3 +67,31 @@ module ::DiscoursePeertube
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: peertube_videos
+#
+#  id              :bigint           not null, primary key
+#  channel_name    :string
+#  duration        :integer
+#  host            :string           not null
+#  is_live         :boolean          default(FALSE), not null
+#  kind            :string           default("video"), not null
+#  live_checked_at :datetime
+#  live_state      :string
+#  position        :integer          default(0), not null
+#  thumbnail_url   :string(1000)
+#  title           :string
+#  uuid            :string           not null
+#  viewers         :integer          default(0), not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  post_id         :bigint           not null
+#
+# Indexes
+#
+#  index_peertube_videos_on_host_and_uuid              (host,uuid)
+#  index_peertube_videos_on_live_checked_at            (live_checked_at) WHERE is_live
+#  index_peertube_videos_on_post_id_and_host_and_uuid  (post_id,host,uuid) UNIQUE
+#

@@ -2,6 +2,8 @@
 
 [English](README.md) · **Español**
 
+> **Estado: experimental (0.1.0).** Se puede usar, pero puede cambiar entre versiones; mirá [Limitaciones conocidas](#limitaciones-conocidas).
+
 Soporte nativo de PeerTube para Discourse: los videos, transmisiones en vivo y listas de tus instancias PeerTube se convierten en reproductores que cargan al hacer clic, con insignia de vivo, una galería `/videos`, miniaturas en la lista de temas y soporte para transmisiones de eventos.
 
 ```
@@ -19,7 +21,7 @@ Soporte nativo de PeerTube para Discourse: los videos, transmisiones en vivo y l
 ## Funciones
 
 - **Onebox del lado del servidor** para las instancias permitidas, armado con la API pública de PeerTube: `/w/<id>`, `/videos/watch/<id>`, `/videos/embed/<id>` y listas (`/w/p/<id>`, …). No hace falta configurar `allowed_iframes`.
-- **Clic para reproducir**: solo se carga la miniatura hasta que el usuario hace clic, así PeerTube no recibe visitas de quien no reproduce.
+- **Clic para reproducir**: el reproductor de PeerTube carga solo cuando el usuario hace clic. Las miniaturas las sirve tu foro cuando `download remote images to local` está activado (lo predeterminado en Discourse); si no, se cargan desde la instancia.
 - **Enlaces con tiempo de inicio**: `?start=1m30s`, `?t=90` y `#t=90` arrancan la reproducción en ese momento.
 - **Insignia de vivo**: `● En vivo · N espectadores`, `En vivo pronto` o `Transmisión finalizada`, actualizada en segundo plano.
 - **Modo cine**: agranda el reproductor sin recargarlo (Esc para salir).
@@ -37,7 +39,7 @@ Seguí [Install plugins in Discourse](https://meta.discourse.org/t/install-plugi
 https://github.com/somos-criptonautas/discourse-peertube-embed.git
 ```
 
-Requiere un Discourse reciente (2026.9 o posterior).
+Requiere Discourse 2026.9 o posterior (usa las rutas actuales de módulos del frontend). El CI corre contra Discourse `main`; las versiones anteriores no se prueban.
 
 ## Ajustes
 
@@ -60,6 +62,29 @@ Después de agregar una instancia, volvé a procesar los posts que ya la enlazan
 rake posts:rebake_match["tube.example.org"]
 ```
 
+## Datos y acceso a la red
+
+- **Servidor → PeerTube**: cuando se procesa un post con un enlace de PeerTube, el servidor pide `/api/v1/videos/<id>` (o `/api/v1/video-playlists/<id>`) a esa instancia. Una tarea programada (cada minuto) revisa los videos en vivo publicados en los últimos 90 días, hasta 30 por vez. Solo se contactan instancias permitidas, con el cliente HTTP de Discourse protegido contra SSRF y sus tiempos de espera habituales. No se envían datos de usuarios.
+- **Navegador → PeerTube**: el iframe del reproductor después del clic (o enseguida si el clic para reproducir está desactivado), y las miniaturas si no se descargan localmente.
+- **Base de datos**: una tabla, `peertube_videos` (una fila por video y post: título, URL de miniatura, duración, estado del vivo). Se incluye en los backups.
+
+## Desactivar y desinstalar
+
+- Desactivar `peertube_embed_enabled` detiene los onebox, la indexación, la tarea de vivos, `/videos` y los endpoints JSON. Los posts ya procesados conservan una tarjeta estática con enlace a PeerTube hasta que se vuelvan a procesar.
+- Al desinstalar el plugin, la tabla `peertube_videos` queda en la base. Para borrarla, eliminala a mano después de desinstalar.
+
+## Solución de problemas
+
+- **El enlace queda como enlace simple**: revisá que el dominio esté en `peertube_embed_instances`, que el servidor llegue a la API de la instancia, y volvé a procesar el post.
+- **`/videos` está vacío**: los posts escritos antes de activar el plugin necesitan un rebake.
+- **No aparece la insignia de vivo**: la tarea actualiza cada minuto; aparece cuando la instancia informa el estado del vivo.
+
+## Limitaciones conocidas
+
+- La tarjeta de transmisión del evento tiene un clic para reproducir simple (sin insignia de vivo ni modo cine).
+- Emails y RSS muestran una miniatura y el título estáticos.
+- El CI solo prueba Discourse `main`; todavía no hay pruebas de navegador del reproductor ni de la galería.
+
 ## Transmisiones en vivo con PeerTube
 
 - Transmití desde OBS o ffmpeg al endpoint RTMP de la instancia.
@@ -76,6 +101,10 @@ bundle exec rubocop
 ```
 
 Los specs corren dentro de un checkout de Discourse: `LOAD_PLUGINS=1 bin/rspec plugins/discourse-peertube-embed/spec`.
+
+## Soporte
+
+Abrí un issue en <https://github.com/somos-criptonautas/discourse-peertube-embed/issues>.
 
 ## Licencia
 

@@ -45,6 +45,9 @@ RSpec.describe DiscoursePeertube::PostIndexer do
     stub_video_api("kkGMgK9ZtnKfYAgnEtQxbv")
     stub_request(:head, "https://#{PeertubeSpecHelpers::HOST}/w/kkGMgK9ZtnKfYAgnEtQxbv")
     stub_request(:get, "https://#{PeertubeSpecHelpers::HOST}/w/kkGMgK9ZtnKfYAgnEtQxbv")
+    stub_request(:get, %r{\Ahttps://#{PeertubeSpecHelpers::HOST}/lazy-static/}).to_return(
+      status: 404,
+    )
 
     post = Fabricate(:post, raw: "https://#{PeertubeSpecHelpers::HOST}/w/kkGMgK9ZtnKfYAgnEtQxbv")
     CookedPostProcessor.new(post, invalidate_oneboxes: true).post_process

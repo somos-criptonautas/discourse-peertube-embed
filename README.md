@@ -2,6 +2,8 @@
 
 **English** · [Español](README.es.md)
 
+> **Status: experimental (0.1.0).** Usable, but expect changes between versions; see [Known limitations](#known-limitations).
+
 Native PeerTube support for Discourse: videos, live streams and playlists from your PeerTube instances become click-to-play players, with live badges, a `/videos` gallery, topic list thumbnails and event livestream support.
 
 ```
@@ -19,7 +21,7 @@ Native PeerTube support for Discourse: videos, live streams and playlists from y
 ## Features
 
 - **Server-side onebox** for allowed instances, built from PeerTube's public API: `/w/<id>`, `/videos/watch/<id>`, `/videos/embed/<id>`, playlists (`/w/p/<id>`, …). No `allowed_iframes` setup needed.
-- **Click-to-play**: only the thumbnail loads until the user clicks, so PeerTube sees no visitors who don't play.
+- **Click-to-play**: the PeerTube player loads only when the user clicks. Thumbnails are served by your forum when `download remote images to local` is on (the Discourse default); otherwise they load from the instance.
 - **Start-time links**: `?start=1m30s`, `?t=90` and `#t=90` start playback at that moment.
 - **Live badge**: `● Live · N viewers`, `Live soon` or `Live ended`, refreshed in the background.
 - **Theater mode**: enlarges the player without reloading it (Esc to exit).
@@ -37,7 +39,7 @@ Follow [Install plugins in Discourse](https://meta.discourse.org/t/install-plugi
 https://github.com/somos-criptonautas/discourse-peertube-embed.git
 ```
 
-Requires a recent Discourse (2026.9+).
+Requires Discourse 2026.9 or newer (it uses the current frontend module paths). CI runs against Discourse `main`; older release lines are not tested.
 
 ## Settings
 
@@ -60,6 +62,29 @@ After adding an instance, rebake the posts that already link to it so they get t
 rake posts:rebake_match["tube.example.org"]
 ```
 
+## Data and network access
+
+- **Server → PeerTube**: when a post with a PeerTube link is cooked, the server requests `/api/v1/videos/<id>` (or `/api/v1/video-playlists/<id>`) from that instance. A scheduled job (every minute) re-checks live videos posted in the last 90 days, up to 30 per run. Only allowed instances are contacted, through Discourse's SSRF-protected HTTP client with its usual timeouts. No user data is sent.
+- **Browser → PeerTube**: the player iframe after a click (or immediately if click-to-play is off), and thumbnails if they are not downloaded locally.
+- **Database**: one table, `peertube_videos` (one row per video per post: title, thumbnail URL, duration, live state). It is included in backups.
+
+## Disabling and removal
+
+- Turning off `peertube_embed_enabled` stops oneboxing, indexing, the live job, `/videos` and the JSON endpoints. Posts already cooked keep a static card that links to PeerTube until they are rebaked.
+- Removing the plugin leaves the `peertube_videos` table in place. To delete it, drop the table manually after removal.
+
+## Troubleshooting
+
+- **The link stays a plain link**: check that the domain is in `peertube_embed_instances`, that the instance API is reachable from the server, then rebake the post.
+- **`/videos` is empty**: posts written before the plugin was enabled need a rebake.
+- **No live badge**: the job refreshes every minute; the badge appears once the instance reports the live state.
+
+## Known limitations
+
+- The event livestream card gets a plain click-to-play (no live badge or theater mode).
+- Emails and RSS show a static thumbnail and title.
+- Only Discourse `main` is tested in CI; there are no browser tests for the player or gallery yet.
+
 ## Live streaming with PeerTube
 
 - Stream from OBS or ffmpeg to the instance's RTMP endpoint.
@@ -76,6 +101,10 @@ bundle exec rubocop
 ```
 
 Specs run in a Discourse checkout: `LOAD_PLUGINS=1 bin/rspec plugins/discourse-peertube-embed/spec`.
+
+## Support
+
+Open an issue at <https://github.com/somos-criptonautas/discourse-peertube-embed/issues>.
 
 ## License
 
