@@ -23,7 +23,7 @@ module Jobs
             videos.update_all(
               live_state: data[:live_state],
               viewers: data[:live_state] == "live" ? data[:viewers] : 0,
-              title: data[:title].truncate(255),
+              title: data[:title].to_s.truncate(255),
               live_checked_at: Time.zone.now,
             )
           else

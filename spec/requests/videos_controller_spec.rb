@@ -32,15 +32,10 @@ RSpec.describe DiscoursePeertube::VideosController do
       SiteSetting.peertube_embed_videos_page = false
       sign_in(member)
 
-      expect(Rails.application.routes.recognize_path("/videos")).to include(
-        controller: "discourse_peertube/videos",
-        action: "page",
-      )
+      get "/peertube/videos.json"
+      expect(response.status).to eq(404)
 
       get "/videos"
-      expect([response.status, response.body.to_s[0, 3000]]).to eq([404, "(diagnostic)"])
-
-      get "/peertube/videos.json"
       expect(response.status).to eq(404)
     end
   end
@@ -99,6 +94,25 @@ RSpec.describe DiscoursePeertube::VideosController do
       public_post.trash!
       get "/peertube/videos.json"
       expect(response.parsed_body["videos"]).to be_empty
+    end
+  end
+
+  describe "topic list" do
+    it "serializes the first video of each topic" do
+      get "/latest.json"
+
+      topic =
+        response.parsed_body["topic_list"]["topics"].find { |t| t["id"] == public_post.topic_id }
+      expect(topic["peertube_video"]["uuid"]).to eq("public")
+    end
+
+    it "omits the video when thumbnails are turned off" do
+      SiteSetting.peertube_embed_topic_list_thumbnails = false
+      get "/latest.json"
+
+      topic =
+        response.parsed_body["topic_list"]["topics"].find { |t| t["id"] == public_post.topic_id }
+      expect(topic).not_to have_key("peertube_video")
     end
   end
 

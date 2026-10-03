@@ -26,7 +26,7 @@ export default class PeertubePlayer extends Component {
 
     const onKeydown = (event) => {
       if (event.key === "Escape") {
-        this.isTheater = false;
+        this.toggleTheater();
       }
     };
     document.addEventListener("keydown", onKeydown);
@@ -40,6 +40,14 @@ export default class PeertubePlayer extends Component {
       schedule("afterRender", () => this.args.onLoaded?.());
     }
   }
+
+  // Theater mode moves focus to its exit button and back to the toggle.
+  focusOnInsert = modifier((element) => element.focus());
+
+  registerElement = modifier((element) => {
+    this.element = element;
+    return () => (this.element = null);
+  });
 
   get video() {
     return this.args.video;
@@ -75,7 +83,14 @@ export default class PeertubePlayer extends Component {
 
   @action
   toggleTheater() {
-    this.isTheater = !this.isTheater;
+    const wasTheater = this.isTheater;
+    this.isTheater = !wasTheater;
+
+    if (wasTheater) {
+      schedule("afterRender", () =>
+        this.element?.querySelector(".peertube-player__theater-toggle")?.focus()
+      );
+    }
   }
 
   <template>
@@ -87,6 +102,7 @@ export default class PeertubePlayer extends Component {
       }}
       data-peertube-key={{this.video.key}}
       {{this.theaterKeys this.isTheater}}
+      {{this.registerElement}}
     >
       {{#if this.isTheater}}
         <div
@@ -135,6 +151,7 @@ export default class PeertubePlayer extends Component {
             @icon="compress"
             @title="peertube_embed.theater_exit"
             @action={{this.toggleTheater}}
+            {{this.focusOnInsert}}
           />
         {{/if}}
       </div>

@@ -14,45 +14,55 @@ module ::DiscoursePeertube
 
     def self.fetch_video(parsed)
       json = get_json(parsed.host, "/api/v1/videos/#{parsed.id}")
-      return if json.blank? || json["uuid"].blank?
+      return if !valid?(json)
 
       {
         kind: "video",
         host: parsed.host,
         uuid: json["uuid"],
-        title: json["name"].to_s,
-        duration: json["duration"].to_i,
+        title: string(json["name"]),
+        duration: integer(json["duration"]),
         is_live: !!json["isLive"],
         live_state: live_state(json),
-        viewers: json["viewers"].to_i,
-        thumbnail_url: absolute_url(parsed.host, json["previewPath"] || json["thumbnailPath"]),
-        channel_name: json.dig("channel", "displayName") || json.dig("account", "displayName"),
-        published_at: json["originallyPublishedAt"] || json["publishedAt"],
+        viewers: integer(json["viewers"]),
+        thumbnail_url:
+          absolute_url(parsed.host, string(json["previewPath"]) || string(json["thumbnailPath"])),
+        channel_name:
+          string(dig(json, "channel", "displayName") || dig(json, "account", "displayName")),
+        published_at: string(json["originallyPublishedAt"] || json["publishedAt"]),
       }
     end
 
     def self.fetch_playlist(parsed)
       json = get_json(parsed.host, "/api/v1/video-playlists/#{parsed.id}")
-      return if json.blank? || json["uuid"].blank?
+      return if !valid?(json)
 
       {
         kind: "playlist",
         host: parsed.host,
         uuid: json["uuid"],
-        title: json["displayName"].to_s,
-        videos_count: json["videosLength"].to_i,
+        title: string(json["displayName"]),
+        videos_count: integer(json["videosLength"]),
         is_live: false,
-        thumbnail_url: absolute_url(parsed.host, json["thumbnailPath"]),
+        thumbnail_url: absolute_url(parsed.host, string(json["thumbnailPath"])),
         channel_name:
-          json.dig("videoChannel", "displayName") || json.dig("ownerAccount", "displayName"),
-        published_at: json["createdAt"],
+          string(
+            dig(json, "videoChannel", "displayName") || dig(json, "ownerAccount", "displayName"),
+          ),
+        published_at: string(json["createdAt"]),
       }
+    end
+
+    # The instance is admin-trusted, but its payload is still remote input.
+    def self.valid?(json)
+      json.is_a?(Hash) && json["uuid"].is_a?(String) &&
+        json["uuid"].match?(/\A[a-zA-Z0-9-]{1,64}\z/)
     end
 
     def self.live_state(json)
       return if !json["isLive"]
 
-      case json.dig("state", "id").to_i
+      case integer(dig(json, "state", "id"))
       when STATE_PUBLISHED
         "live"
       when STATE_WAITING_FOR_LIVE
@@ -60,6 +70,18 @@ module ::DiscoursePeertube
       when STATE_LIVE_ENDED
         "ended"
       end
+    end
+
+    def self.integer(value)
+      value.is_a?(Numeric) ? value.to_i : 0
+    end
+
+    def self.string(value)
+      value.is_a?(String) ? value.presence : nil
+    end
+
+    def self.dig(json, *keys)
+      keys.reduce(json) { |node, key| node.is_a?(Hash) ? node[key] : nil }
     end
 
     def self.absolute_url(host, path)

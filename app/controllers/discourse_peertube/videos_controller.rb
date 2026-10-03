@@ -78,7 +78,11 @@ module ::DiscoursePeertube
     private
 
     def ensure_videos_page
-      raise Discourse::NotFound if !SiteSetting.peertube_embed_videos_page
+      return if SiteSetting.peertube_embed_videos_page
+      raise Discourse::NotFound if request.format.json?
+
+      # The HTML error page keeps a 200 status, so answer with an explicit 404.
+      render "default/empty", status: :not_found
     end
 
     # One video per topic the current user can see.

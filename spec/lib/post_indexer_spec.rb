@@ -35,6 +35,13 @@ RSpec.describe DiscoursePeertube::PostIndexer do
     expect(videos.first.viewers).to eq(12)
   end
 
+  it "removes rows when the post is destroyed" do
+    index(onebox_html(uuid: "aaa"))
+    post.destroy!
+
+    expect(DiscoursePeertube::Video.where(post_id: post.id)).to be_empty
+  end
+
   it "ignores cards from hosts that are not allowed" do
     index(onebox_html(uuid: "aaa").gsub(PeertubeSpecHelpers::HOST, "evil.example"))
 

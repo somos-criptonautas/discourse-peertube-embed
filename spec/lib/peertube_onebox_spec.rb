@@ -41,6 +41,15 @@ RSpec.describe Onebox::Engine::PeertubeOnebox do
     expect(Nokogiri::HTML5.fragment(html).at_css("div")["data-peertube-live"]).to eq("true")
   end
 
+  it "returns nothing for a malformed API payload" do
+    stub_request(
+      :get,
+      "https://#{PeertubeSpecHelpers::HOST}/api/v1/videos/kkGMgK9ZtnKfYAgnEtQxbv",
+    ).to_return(status: 200, body: { uuid: { bad: true }, duration: "x" }.to_json)
+
+    expect(described_class.new(url).to_html).to eq("")
+  end
+
   it "returns nothing when the API fails" do
     stub_request(
       :get,
