@@ -113,6 +113,23 @@ RSpec.describe DiscoursePeertube::VideosController do
     end
   end
 
+  describe "GET /peertube/live.json (visibility)" do
+    it "hides videos from posts the user cannot see" do
+      DiscoursePeertube::PostIndexer.index(
+        private_post,
+        Nokogiri::HTML5.fragment(onebox_html(uuid: "private-live", live: true)),
+      )
+      key = "#{PeertubeSpecHelpers::HOST}/private-live"
+
+      get "/peertube/live.json", params: { keys: [key] }
+      expect(response.parsed_body["live"]).to eq({})
+
+      sign_in(member)
+      get "/peertube/live.json", params: { keys: [key] }
+      expect(response.parsed_body["live"]).to have_key(key)
+    end
+  end
+
   describe "GET /peertube/live.json" do
     it "returns the stored live state" do
       DiscoursePeertube::Video.where(uuid: "public").update_all(live_state: "live", viewers: 7)

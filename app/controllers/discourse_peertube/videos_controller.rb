@@ -6,6 +6,7 @@ module ::DiscoursePeertube
 
     PER_PAGE = 24
     MAX_LIVE_KEYS = 50
+    MAX_LIVE_ROWS = 500
 
     before_action :ensure_videos_page, only: %i[page index]
 
@@ -65,10 +66,12 @@ module ::DiscoursePeertube
         .each do |host, host_pairs|
           Video
             .where(host: host, uuid: host_pairs.map(&:last), is_live: true)
-            .distinct
-            .pluck(:host, :uuid, :live_state, :viewers)
-            .each do |h, uuid, state, viewers|
-              result["#{h}/#{uuid}"] = { live_state: state, viewers: viewers }
+            .includes(post: :topic)
+            .order(:id)
+            .limit(MAX_LIVE_ROWS)
+            .each do |video|
+              next if result.key?(video.key) || !guardian.can_see?(video.post)
+              result[video.key] = { live_state: video.live_state, viewers: video.viewers }
             end
         end
 
