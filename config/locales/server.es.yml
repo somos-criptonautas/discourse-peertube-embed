@@ -17,7 +17,7 @@ es:
     peertube_embed_upload_channel: "Canal de PeerTube por defecto para las subidas (lo que va después de /c/ en la URL del canal)."
     peertube_embed_upload_category_channels: "Canales opcionales por categoría, como slug-de-categoría:nombre-del-canal. Las categorías que no figuran usan el canal por defecto."
     peertube_embed_upload_allowed_groups: "Grupos que pueden subir videos a PeerTube."
-    peertube_embed_upload_max_size_mb: "Tamaño máximo de video en MB para las subidas (las cuotas de PeerTube siguen aplicando)."
+    peertube_embed_upload_max_size_mb: "Tamaño máximo de video en MB para las subidas. 0 significa sin límite acá; la cuota y los límites de PeerTube siguen aplicando."
   peertube_embed:
     upload_errors:
       not_allowed: "No tenés permiso para subir videos."

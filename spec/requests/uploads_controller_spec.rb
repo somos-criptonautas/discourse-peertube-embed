@@ -129,6 +129,14 @@ RSpec.describe DiscoursePeertube::UploadsController do
     expect(init.with(body: hash_including("channelId" => 7, "privacy" => 2))).to have_been_requested
   end
 
+  it "has no plugin size limit by default" do
+    stub_init
+    sign_in(user)
+
+    start_upload(size: 50 * 1024 * 1024 * 1024)
+    expect(response.status).to eq(200)
+  end
+
   it "rejects files that are too large or not videos" do
     sign_in(user)
     SiteSetting.peertube_embed_upload_max_size_mb = 1

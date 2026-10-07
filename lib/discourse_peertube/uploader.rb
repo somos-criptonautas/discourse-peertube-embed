@@ -62,9 +62,8 @@ module ::DiscoursePeertube
     def self.start(user:, name:, filename:, size:, mime:, category:)
       raise Error.new(:not_allowed) if !allowed?(user)
       raise Error.new(:invalid_file) if !mime.to_s.start_with?("video/") || size.to_i <= 0
-      if size > SiteSetting.peertube_embed_upload_max_size_mb * 1024 * 1024
-        raise Error.new(:too_large)
-      end
+      max_mb = SiteSetting.peertube_embed_upload_max_size_mb
+      raise Error.new(:too_large) if max_mb.positive? && size > max_mb * 1024 * 1024
 
       channel = channel_for(category)
       channel_id = channel && channel_id(channel)

@@ -56,7 +56,7 @@ discourse_peertube_embed:
     default: "1|2|12"
     allow_any: false
   peertube_embed_upload_max_size_mb:
-    default: 2048
-    min: 1
-    max: 20480
+    default: 0
+    min: 0
+    max: 1048576
     client: true

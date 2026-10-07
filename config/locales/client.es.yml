@@ -32,6 +32,7 @@ es:
         file_label: "Archivo de video"
         title_label: "Título"
         max_size: "Hasta %{size} MB. PeerTube procesa el video después de subirlo; la tarjeta aparece cuando está listo."
+        processing_note: "PeerTube procesa el video después de subirlo; la tarjeta aparece cuando está listo."
         upload: "Subir"
         uploading: "Subiendo… %{percent}%"
         cancel_upload: "Cancelar subida"

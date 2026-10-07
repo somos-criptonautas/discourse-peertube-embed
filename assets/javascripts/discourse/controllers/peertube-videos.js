@@ -4,6 +4,8 @@ import { action } from "@ember/object";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 
+export const ALL = "__all";
+
 export default class PeertubeVideosController extends Controller {
   queryParams = ["tab", "filter", "category_id", "channel"];
 
@@ -31,14 +33,15 @@ export default class PeertubeVideosController extends Controller {
   }
 
   @action
-  setTab(event) {
-    this.tab = event.target.value;
+  setTab(tab) {
+    this.tab = tab;
     this.channel = null;
   }
 
   @action
-  setFilter(event) {
-    this.filter = event.target.value;
+  setFilter(filter, event) {
+    event?.preventDefault();
+    this.filter = filter;
   }
 
   @action
@@ -47,8 +50,8 @@ export default class PeertubeVideosController extends Controller {
   }
 
   @action
-  setCategory(event) {
-    this.category_id = event.target.value || null;
+  setCategory(categoryId) {
+    this.category_id = categoryId === ALL ? null : categoryId;
   }
 
   @action

@@ -68,7 +68,7 @@ Requires Discourse 2026.9 or newer (it uses the current frontend module paths). 
 | `peertube_embed_upload_channel` | — | Default channel name for uploads. |
 | `peertube_embed_upload_category_channels` | — | Optional `category-slug:channel` pairs. |
 | `peertube_embed_upload_allowed_groups` | admins, moderators, TL2 | Who can upload. |
-| `peertube_embed_upload_max_size_mb` | 2048 | Upload size limit (PeerTube quotas still apply). |
+| `peertube_embed_upload_max_size_mb` | 0 | Upload size limit in MB; 0 = no limit (PeerTube's quota and limits decide). |
 
 After adding an instance, rebake the posts that already link to it so they get the new onebox and are indexed:
 

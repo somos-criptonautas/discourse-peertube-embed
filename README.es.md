@@ -68,7 +68,7 @@ Requiere Discourse 2026.9 o posterior (usa las rutas actuales de módulos del fr
 | `peertube_embed_upload_channel` | — | Canal por defecto para las subidas. |
 | `peertube_embed_upload_category_channels` | — | Pares opcionales `slug-de-categoría:canal`. |
 | `peertube_embed_upload_allowed_groups` | admins, moderadores, NC2 | Quién puede subir. |
-| `peertube_embed_upload_max_size_mb` | 2048 | Límite de tamaño (las cuotas de PeerTube siguen aplicando). |
+| `peertube_embed_upload_max_size_mb` | 0 | Límite en MB; 0 = sin límite (deciden la cuota y los límites de PeerTube). |
 
 Después de agregar una instancia, volvé a procesar los posts que ya la enlazan para que tengan el nuevo onebox y queden indexados:
 

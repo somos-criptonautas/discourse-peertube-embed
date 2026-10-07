@@ -51,9 +51,10 @@ export default class PeertubeInsert extends Component {
   }
 
   get maxSizeLabel() {
-    return i18n("peertube_embed.composer.max_size", {
-      size: this.siteSettings.peertube_embed_upload_max_size_mb,
-    });
+    const size = this.siteSettings.peertube_embed_upload_max_size_mb;
+    return size > 0
+      ? i18n("peertube_embed.composer.max_size", { size })
+      : i18n("peertube_embed.composer.processing_note");
   }
 
   @action

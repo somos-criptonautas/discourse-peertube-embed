@@ -227,30 +227,6 @@
 }
 
 // /videos gallery
-.peertube-videos-page__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5em 1em;
-  margin-bottom: 1em;
-
-  h1 {
-    margin: 0;
-  }
-}
-
-.peertube-videos-page__filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.peertube-videos-page__category {
-  margin: 0;
-}
-
 .peertube-videos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
@@ -320,40 +296,35 @@
   font-size: var(--font-down-1);
 }
 
-// /videos header, source dropdown and filters
-.peertube-videos-page__header h1 {
+// /videos title and discovery-style bar (like Discourse's /latest)
+.peertube-videos-page__title {
+  margin: 0 0 0.75em;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
 
-.peertube-videos-page__source {
-  margin: 0 0 0 auto;
-  min-width: 10em;
-}
-
-.peertube-videos-page__filters select {
-  margin: 0;
-}
-
-.peertube-sort-pills {
+.peertube-videos-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25em;
+  align-items: center;
+  gap: 0.5em 1em;
+  margin-bottom: 1em;
+  padding-bottom: 0.75em;
+  border-bottom: 1px solid var(--primary-low);
 }
 
-.peertube-sort-pill {
-  padding: 0.25em 0.75em;
-  border-radius: 2em;
-  color: var(--primary-high);
+.peertube-videos-bar__drops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
 
-  &.--active {
-    color: var(--secondary);
-    background: var(--tertiary);
+  .select-kit {
+    min-width: 10em;
   }
 }
 
-.peertube-videos-page__channel {
-  margin-inline-start: auto;
+.peertube-videos-bar__pills.nav-pills {
+  margin: 0;
 }
 
 // Selected channel
@@ -389,11 +360,6 @@
 .peertube-channel-header__description {
   margin: 0.35em 0 0;
   white-space: pre-line;
-}
-
-.peertube-videos-page > .peertube-videos-page__filters,
-.peertube-instance-browser > .peertube-videos-page__filters {
-  margin-bottom: 1em;
 }
 
 .peertube-video-card__source {

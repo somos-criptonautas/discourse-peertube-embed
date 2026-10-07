@@ -6,9 +6,9 @@ import { action } from "@ember/object";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { eq } from "discourse/truth-helpers";
-import DButton from "discourse/ui-kit/d-button";
-import dConcatClass from "discourse/ui-kit/helpers/d-concat-class";
 import { i18n } from "discourse-i18n";
+import ComboBox from "discourse/select-kit/components/combo-box";
+import { ALL } from "../controllers/peertube-videos";
 import PeertubeVideoGrid from "./peertube-video-grid";
 
 const SORTS = [
@@ -81,8 +81,20 @@ export default class PeertubeInstanceBrowser extends Component {
     }
   }
 
+  get channelOptions() {
+    return [
+      { id: ALL, name: i18n("peertube_embed.page.all_channels") },
+      ...this.channels.map((c) => ({ id: c.name, name: c.display_name })),
+    ];
+  }
+
+  get channelValue() {
+    return this.args.channel || ALL;
+  }
+
   @action
-  setSort(sort) {
+  setSort(sort, event) {
+    event?.preventDefault();
     if (sort !== this.sort) {
       this.sort = sort;
       this.load();
@@ -90,8 +102,8 @@ export default class PeertubeInstanceBrowser extends Component {
   }
 
   @action
-  setChannel(event) {
-    this.args.onChannelChange?.(event.target.value);
+  setChannel(channel) {
+    this.args.onChannelChange?.(channel === ALL ? null : channel);
   }
 
   @action
@@ -120,42 +132,29 @@ export default class PeertubeInstanceBrowser extends Component {
 
   <template>
     <div class="peertube-instance-browser">
-      <div class="peertube-videos-page__filters">
-        <div
-          class="peertube-sort-pills"
-          role="group"
-          aria-label={{i18n "peertube_embed.page.sort"}}
-        >
-          {{#each this.sorts as |sort|}}
-            <DButton
-              class={{dConcatClass
-                "btn-flat peertube-sort-pill"
-                (if (eq this.sort sort.id) "--active")
-              }}
-              aria-pressed={{if (eq this.sort sort.id) "true" "false"}}
-              @label={{sort.label}}
-              @action={{fn this.setSort sort.id}}
+      <div class="peertube-videos-bar">
+        <div class="peertube-videos-bar__drops">
+          {{yield}}
+          {{#if this.channels.length}}
+            <ComboBox
+              @content={{this.channelOptions}}
+              @value={{this.channelValue}}
+              @onChange={{this.setChannel}}
+              class="peertube-channel-dropdown"
             />
-          {{/each}}
+          {{/if}}
         </div>
-
-        {{#if this.channels.length}}
-          <select
-            class="peertube-videos-page__channel"
-            aria-label={{i18n "peertube_embed.page.channels"}}
-            {{on "change" this.setChannel}}
-          >
-            <option value="">{{i18n
-                "peertube_embed.page.all_channels"
-              }}</option>
-            {{#each this.channels key="name" as |channel|}}
-              <option
-                value={{channel.name}}
-                selected={{eq channel.name @channel}}
-              >{{channel.display_name}}</option>
-            {{/each}}
-          </select>
-        {{/if}}
+        <ul class="nav nav-pills peertube-videos-bar__pills">
+          {{#each this.sorts as |sort|}}
+            <li>
+              <a
+                href
+                class={{if (eq this.sort sort.id) "active"}}
+                {{on "click" (fn this.setSort sort.id)}}
+              >{{i18n sort.label}}</a>
+            </li>
+          {{/each}}
+        </ul>
       </div>
 
       {{#if this.channelInfo}}
