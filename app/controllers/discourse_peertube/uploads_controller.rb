@@ -23,11 +23,14 @@ module ::DiscoursePeertube
           422
         end
 
-      render_json_error(
-        I18n.t("peertube_embed.upload_errors.#{error.code}", default: error.code.to_s),
-        status: status,
-        extras: error.details || {},
-      )
+      # Rendered directly so `details` (the resume offset) reaches the client.
+      render json: {
+               errors: [
+                 I18n.t("peertube_embed.upload_errors.#{error.code}", default: error.code.to_s),
+               ],
+               error_type: error.code,
+             }.merge(error.details || {}),
+             status: status
     end
 
     # POST /peertube/uploads.json { name, filename, size, mime, category_id }
