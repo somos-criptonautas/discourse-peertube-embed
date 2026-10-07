@@ -7,6 +7,9 @@ DiscoursePeertube::Engine.routes.draw do
   get "/instance/channels" => "videos#instance_channels", :defaults => { format: :json }
   get "/instance/channel" => "videos#instance_channel", :defaults => { format: :json }
   get "/live" => "videos#live", :defaults => { format: :json }
+  post "/uploads" => "uploads#create", :defaults => { format: :json }
+  put "/uploads/:id" => "uploads#update", :defaults => { format: :json }
+  delete "/uploads/:id" => "uploads#destroy", :defaults => { format: :json }
 end
 
 Discourse::Application.routes.draw do

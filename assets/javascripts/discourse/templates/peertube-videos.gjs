@@ -1,7 +1,6 @@
-import { fn } from "@ember/helper";
+import { array } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { eq } from "discourse/truth-helpers";
-import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import PeertubeInstanceBrowser from "../components/peertube-instance-browser";
 import PeertubeMixedFeed from "../components/peertube-mixed-feed";
@@ -9,65 +8,52 @@ import PeertubeVideoGrid from "../components/peertube-video-grid";
 
 const isSelected = (id, selected) => String(id) === String(selected ?? "");
 
-const TABS = [
-  { id: "all", label: "peertube_embed.page.tab_all" },
-  { id: "community", label: "peertube_embed.page.tab_community" },
-  { id: "instance", label: "peertube_embed.page.tab_instance" },
-];
+const TABS = ["all", "community", "instance"];
 
 export default <template>
   <div class="peertube-videos-page">
     <div class="peertube-videos-page__header">
       <h1>{{i18n "peertube_embed.page.title"}}</h1>
-      <div class="peertube-videos-page__tabs" role="tablist">
+      <select
+        class="peertube-videos-page__source"
+        aria-label={{i18n "peertube_embed.page.source"}}
+        {{on "change" @controller.setTab}}
+      >
         {{#each TABS as |tab|}}
-          <DButton
-            class={{if
-              (eq @controller.activeTab tab.id)
-              "btn-primary"
-              "btn-default"
-            }}
-            role="tab"
-            aria-selected={{if
-              (eq @controller.activeTab tab.id)
-              "true"
-              "false"
-            }}
-            @label={{tab.label}}
-            @action={{fn @controller.setTab tab.id}}
-          />
+          <option value={{tab}} selected={{eq @controller.activeTab tab}}>{{i18n
+              (concatTab tab)
+            }}</option>
         {{/each}}
-      </div>
+      </select>
     </div>
 
     {{#if (eq @controller.activeTab "all")}}
       <PeertubeMixedFeed />
     {{else if (eq @controller.activeTab "instance")}}
-      <PeertubeInstanceBrowser />
+      {{! Keyed so picking a channel rebuilds the browser state. }}
+      {{#each (array @controller.channel) as |channel|}}
+        <PeertubeInstanceBrowser
+          @channel={{channel}}
+          @onChannelChange={{@controller.setChannel}}
+        />
+      {{/each}}
     {{else}}
       <div class="peertube-videos-page__filters">
-        <DButton
-          class={{if
-            (eq @controller.filter "live")
-            "btn-default"
-            "btn-primary"
-          }}
-          @label="peertube_embed.page.filter_all"
-          @action={{fn @controller.setFilter "all"}}
-        />
-        <DButton
-          class={{if
-            (eq @controller.filter "live")
-            "btn-primary"
-            "btn-default"
-          }}
-          @icon="tower-broadcast"
-          @label="peertube_embed.page.filter_live"
-          @action={{fn @controller.setFilter "live"}}
-        />
+        <select
+          aria-label={{i18n "peertube_embed.page.filter"}}
+          {{on "change" @controller.setFilter}}
+        >
+          <option value="all" selected={{eq @controller.filter "all"}}>
+            {{i18n "peertube_embed.page.filter_all"}}
+          </option>
+          <option value="live" selected={{eq @controller.filter "live"}}>
+            {{i18n "peertube_embed.page.filter_live"}}
+          </option>
+        </select>
         {{#if @controller.categories.length}}
           <select
             class="peertube-videos-page__category"
+            aria-label={{i18n "peertube_embed.page.all_categories"}}
             {{on "change" @controller.setCategory}}
           >
             <option value="">{{i18n
@@ -97,3 +83,7 @@ export default <template>
     {{/if}}
   </div>
 </template>
+
+function concatTab(tab) {
+  return `peertube_embed.page.tab_${tab}`;
+}

@@ -27,6 +27,8 @@ require_relative "lib/discourse_peertube/url_parser"
 require_relative "lib/discourse_peertube/api_client"
 require_relative "lib/discourse_peertube/onebox_renderer"
 require_relative "lib/discourse_peertube/instance_client"
+require_relative "lib/discourse_peertube/default_tab_setting"
+require_relative "lib/discourse_peertube/uploader"
 require_relative "lib/onebox/engine/peertube_onebox"
 
 after_initialize do
@@ -52,6 +54,10 @@ after_initialize do
   # Soft-deleted posts are filtered in queries; this covers hard deletes.
   add_model_callback(:post, :after_destroy) do
     DiscoursePeertube::Video.where(post_id: id).delete_all
+  end
+
+  add_to_serializer(:current_user, :can_upload_peertube_videos) do
+    DiscoursePeertube::Uploader.allowed?(object)
   end
 
   add_to_class(:topic, :peertube_video) { @peertube_video }

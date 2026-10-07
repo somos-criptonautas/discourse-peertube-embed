@@ -5,9 +5,10 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 
 export default class PeertubeVideosController extends Controller {
-  queryParams = ["tab", "filter", "category_id"];
+  queryParams = ["tab", "filter", "category_id", "channel"];
 
   @tracked tab = null;
+  @tracked channel = null;
   @tracked activeTab = "all";
   @tracked filter = "all";
   @tracked category_id = null;
@@ -30,13 +31,19 @@ export default class PeertubeVideosController extends Controller {
   }
 
   @action
-  setTab(tab) {
-    this.tab = tab;
+  setTab(event) {
+    this.tab = event.target.value;
+    this.channel = null;
   }
 
   @action
-  setFilter(filter) {
-    this.filter = filter;
+  setFilter(event) {
+    this.filter = event.target.value;
+  }
+
+  @action
+  setChannel(channel) {
+    this.channel = channel || null;
   }
 
   @action

@@ -1,25 +1,13 @@
 import { service } from "@ember/service";
-import { ajax } from "discourse/lib/ajax";
 import DiscourseRoute from "discourse/routes/discourse";
 
+// Old /videos/c/<channel> links open the channel inside /videos.
 export default class PeertubeChannelRoute extends DiscourseRoute {
   @service router;
-  @service siteSettings;
 
-  beforeModel() {
-    if (!this.siteSettings.peertube_embed_videos_page) {
-      this.router.replaceWith("discovery.latest");
-    }
-  }
-
-  async model(params) {
-    const result = await ajax("/peertube/instance/channel.json", {
-      data: { name: params.channel },
+  beforeModel(transition) {
+    this.router.replaceWith("peertubeVideos", {
+      queryParams: { tab: "instance", channel: transition.to.params.channel },
     });
-    return result.channel;
-  }
-
-  titleToken() {
-    return this.currentModel?.display_name;
   }
 }

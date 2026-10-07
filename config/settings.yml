@@ -27,10 +27,7 @@ discourse_peertube_embed:
   peertube_embed_videos_default_tab:
     type: enum
     default: all
-    choices:
-      - all
-      - community
-      - instance
+    enum: "DiscoursePeertube::DefaultTabSetting"
     client: true
   peertube_embed_live_refresh_seconds:
     default: 60
@@ -39,3 +36,27 @@ discourse_peertube_embed:
     client: true
   peertube_embed_sync_event_livestream_hosts:
     default: true
+  peertube_embed_upload_enabled:
+    default: false
+    client: true
+  peertube_embed_upload_username:
+    default: ""
+  peertube_embed_upload_password:
+    default: ""
+    secret: true
+  peertube_embed_upload_channel:
+    default: ""
+  peertube_embed_upload_category_channels:
+    type: list
+    list_type: simple
+    default: ""
+  peertube_embed_upload_allowed_groups:
+    type: group_list
+    list_type: compact
+    default: "1|2|12"
+    allow_any: false
+  peertube_embed_upload_max_size_mb:
+    default: 2048
+    min: 1
+    max: 20480
+    client: true

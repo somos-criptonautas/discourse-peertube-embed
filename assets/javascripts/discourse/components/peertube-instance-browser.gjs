@@ -1,12 +1,13 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
+import { on } from "@ember/modifier";
 import { action } from "@ember/object";
-import { LinkTo } from "@ember/routing";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { eq } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
+import dConcatClass from "discourse/ui-kit/helpers/d-concat-class";
 import { i18n } from "discourse-i18n";
 import PeertubeVideoGrid from "./peertube-video-grid";
 
@@ -14,19 +15,16 @@ const SORTS = [
   { id: "latest", label: "peertube_embed.page.sort_latest" },
   { id: "trending", label: "peertube_embed.page.sort_trending" },
   { id: "random", label: "peertube_embed.page.sort_random" },
-  {
-    id: "live",
-    label: "peertube_embed.page.sort_live",
-    icon: "tower-broadcast",
-  },
+  { id: "live", label: "peertube_embed.page.sort_live" },
 ];
 
-// Instance videos like a PeerTube home page: sorts, channels and paging.
-// With @channel, only that channel's videos.
+// Instance videos like a PeerTube home page: sorts, a channel filter and
+// paging, all inside /videos.
 export default class PeertubeInstanceBrowser extends Component {
   @tracked sort = "latest";
   @tracked videos = [];
   @tracked channels = [];
+  @tracked channelInfo = null;
   @tracked more = false;
   @tracked loading = true;
   @tracked loadingMore = false;
@@ -39,9 +37,7 @@ export default class PeertubeInstanceBrowser extends Component {
   constructor() {
     super(...arguments);
     this.load();
-    if (!this.args.channel) {
-      this.loadChannels();
-    }
+    this.loadChannels();
   }
 
   fetchPage(page) {
@@ -74,9 +70,12 @@ export default class PeertubeInstanceBrowser extends Component {
   async loadChannels() {
     try {
       const result = await ajax("/peertube/instance/channels.json");
-      if (!this.isDestroying) {
-        this.channels = result.channels;
+      if (this.isDestroying) {
+        return;
       }
+      this.channels = result.channels;
+      this.channelInfo =
+        result.channels.find((c) => c.name === this.args.channel) || null;
     } catch {
       // Channels are optional; videos still load.
     }
@@ -88,6 +87,11 @@ export default class PeertubeInstanceBrowser extends Component {
       this.sort = sort;
       this.load();
     }
+  }
+
+  @action
+  setChannel(event) {
+    this.args.onChannelChange?.(event.target.value);
   }
 
   @action
@@ -117,34 +121,76 @@ export default class PeertubeInstanceBrowser extends Component {
   <template>
     <div class="peertube-instance-browser">
       <div class="peertube-videos-page__filters">
-        {{#each this.sorts as |sort|}}
-          <DButton
-            class={{if (eq this.sort sort.id) "btn-primary" "btn-default"}}
-            @icon={{sort.icon}}
-            @label={{sort.label}}
-            @action={{fn this.setSort sort.id}}
-          />
-        {{/each}}
+        <div
+          class="peertube-sort-pills"
+          role="group"
+          aria-label={{i18n "peertube_embed.page.sort"}}
+        >
+          {{#each this.sorts as |sort|}}
+            <DButton
+              class={{dConcatClass
+                "btn-flat peertube-sort-pill"
+                (if (eq this.sort sort.id) "--active")
+              }}
+              aria-pressed={{if (eq this.sort sort.id) "true" "false"}}
+              @label={{sort.label}}
+              @action={{fn this.setSort sort.id}}
+            />
+          {{/each}}
+        </div>
+
+        {{#if this.channels.length}}
+          <select
+            class="peertube-videos-page__channel"
+            aria-label={{i18n "peertube_embed.page.channels"}}
+            {{on "change" this.setChannel}}
+          >
+            <option value="">{{i18n
+                "peertube_embed.page.all_channels"
+              }}</option>
+            {{#each this.channels key="name" as |channel|}}
+              <option
+                value={{channel.name}}
+                selected={{eq channel.name @channel}}
+              >{{channel.display_name}}</option>
+            {{/each}}
+          </select>
+        {{/if}}
       </div>
 
-      {{#if this.channels.length}}
-        <nav
-          class="peertube-channel-row"
-          aria-label={{i18n "peertube_embed.page.channels"}}
-        >
-          {{#each this.channels key="name" as |channel|}}
-            <LinkTo
-              @route="peertubeChannel"
-              @model={{channel.name}}
-              class="peertube-channel-chip"
-            >
-              {{#if channel.avatar_url}}
-                <img src={{channel.avatar_url}} alt="" loading="lazy" />
-              {{/if}}
-              <span>{{channel.display_name}}</span>
-            </LinkTo>
-          {{/each}}
-        </nav>
+      {{#if this.channelInfo}}
+        <div class="peertube-channel-header">
+          {{#if this.channelInfo.avatar_url}}
+            <img
+              class="peertube-channel-header__avatar"
+              src={{this.channelInfo.avatar_url}}
+              alt=""
+            />
+          {{/if}}
+          <div class="peertube-channel-header__info">
+            <strong>{{this.channelInfo.display_name}}</strong>
+            <span class="peertube-channel-header__meta">
+              {{i18n
+                "peertube_embed.page.followers"
+                count=this.channelInfo.followers
+              }}
+              ·
+              <a
+                href={{this.channelInfo.url}}
+                target="_blank"
+                rel="noopener noreferrer"
+              >{{i18n
+                  "peertube_embed.open_on_instance"
+                  host=this.channelInfo.host
+                }}</a>
+            </span>
+            {{#if this.channelInfo.description}}
+              <p
+                class="peertube-channel-header__description"
+              >{{this.channelInfo.description}}</p>
+            {{/if}}
+          </div>
+        </div>
       {{/if}}
 
       <PeertubeVideoGrid

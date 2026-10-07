@@ -25,12 +25,15 @@ Native PeerTube support for Discourse: videos, live streams and playlists from y
 - **Start-time links**: `?start=1m30s`, `?t=90` and `#t=90` start playback at that moment.
 - **Live badge**: `● Live · N viewers`, `Live soon` or `Live ended`, refreshed in the background.
 - **Theater mode**: enlarges the player without reloading it (Esc to exit).
-- **Composer button**: paste a PeerTube URL; it is checked against the allowed instances and inserted on its own line.
+- **Composer button**: upload a video to PeerTube (allowed groups only) or paste a PeerTube URL.
+  - Uploads go to the home instance as one service account, in 5 MB chunks through the forum (credentials never reach the browser; progress, retry and cancel are built in).
+  - Channel: per-category (`category-slug:channel`), else the default channel.
+  - Privacy follows the category: public categories → Public, restricted categories → Unlisted.
 - **Topic list thumbnails** for topics that contain a PeerTube video, with a ▶ or LIVE overlay.
-- **`/videos` gallery** with three tabs and a sidebar link:
+- **`/videos` gallery** with a source dropdown (All / Community / Instance) and a sidebar link:
   - **All**: community and instance videos merged by date, each with a source badge.
   - **Community**: videos posted in the forum, with Live and category filters. Indexed automatically when posts are cooked; respects category permissions and skips whispers and hidden posts.
-  - **Instance**: the home PeerTube instance's local videos, like a PeerTube home page: Latest, Trending, Random and Live, plus a channel row. Each channel has its own page at `/videos/c/<channel>`.
+  - **Instance**: the home PeerTube instance's local videos, like a PeerTube home page: Latest, Trending, Random and Live, plus a channel dropdown that filters the page (`?channel=`).
 - **Instance videos play in a modal** on the forum, with a link to the forum topic when the video was already posted, or a **Discuss in forum** button that opens the composer with the video link and title.
 - **Events**: PeerTube instances are added to the events plugin's livestream allowed hosts, so an event's livestream URL can be a PeerTube live and is shown on the event card next to the event chat.
 - Emails, RSS and crawlers get a linked thumbnail and title.
@@ -60,6 +63,12 @@ Requires Discourse 2026.9 or newer (it uses the current frontend module paths). 
 | `peertube_embed_videos_default_tab` | all | Tab opened first: `all`, `community` or `instance`. |
 | `peertube_embed_live_refresh_seconds` | 60 | Live state refresh interval (min. 60). |
 | `peertube_embed_sync_event_livestream_hosts` | true | Add instances to the events livestream allowed hosts. |
+| `peertube_embed_upload_enabled` | false | Composer uploads to PeerTube. |
+| `peertube_embed_upload_username` / `_password` | — | PeerTube service account (password is a secret setting). |
+| `peertube_embed_upload_channel` | — | Default channel name for uploads. |
+| `peertube_embed_upload_category_channels` | — | Optional `category-slug:channel` pairs. |
+| `peertube_embed_upload_allowed_groups` | admins, moderators, TL2 | Who can upload. |
+| `peertube_embed_upload_max_size_mb` | 2048 | Upload size limit (PeerTube quotas still apply). |
 
 After adding an instance, rebake the posts that already link to it so they get the new onebox and are indexed:
 
@@ -71,6 +80,7 @@ rake posts:rebake_match["tube.example.org"]
 ## Data and network access
 
 - **Server → PeerTube**: when a post with a PeerTube link is cooked, the server requests `/api/v1/videos/<id>` (or `/api/v1/video-playlists/<id>`) from that instance. A scheduled job (every minute) re-checks live videos posted in the last 90 days, up to 30 per run. Only allowed instances are contacted, through Discourse's SSRF-protected HTTP client with its usual timeouts. No user data is sent. The Instance tab and channel pages list the home instance's local videos and channels through the server, cached for 5 minutes (videos) and 1 hour (channels), so visitors never contact the instance until they press play.
+- **Uploads**: video files pass through the forum server to the home instance using the service account; the account's access token is kept in Redis until it expires.
 - **Browser → PeerTube**: the player iframe after a click (or immediately if click-to-play is off), and thumbnails if they are not downloaded locally.
 - **Database**: one table, `peertube_videos` (one row per video per post: title, thumbnail URL, duration, live state). It is included in backups.
 

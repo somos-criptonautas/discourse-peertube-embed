@@ -3,7 +3,7 @@ es:
     admin:
       site_settings:
         categories:
-          discourse_peertube_embed: "PeerTube Embed"
+          discourse_peertube_embed: "PeerTube"
   js:
     peertube_embed:
       play: "Reproducir %{title}"
@@ -20,13 +20,23 @@ es:
       theater_exit: "Salir del modo cine"
       open_on_instance: "Abrir en %{host}"
       composer:
-        button: "Insertar video de PeerTube"
+        button: "Agregar un video de PeerTube"
         modal_title: "Insertar un video de PeerTube"
         url_label: "URL del video, vivo o lista"
         url_placeholder: "https://tube.example.org/w/…"
         allowed_instances: "Instancias permitidas: %{instances}"
         invalid_url: "No es una URL de video, vivo o lista de una instancia PeerTube permitida."
         insert: "Insertar"
+        tab_upload: "Subir video"
+        tab_link: "Pegar enlace"
+        file_label: "Archivo de video"
+        title_label: "Título"
+        max_size: "Hasta %{size} MB. PeerTube procesa el video después de subirlo; la tarjeta aparece cuando está listo."
+        upload: "Subir"
+        uploading: "Subiendo… %{percent}%"
+        cancel_upload: "Cancelar subida"
+        confirm_cancel: "La subida sigue en curso. ¿Cancelarla?"
+        upload_failed: "La subida falló."
       page:
         title: "Videos"
         sidebar_title: "Videos y transmisiones en vivo de PeerTube"
@@ -36,6 +46,9 @@ es:
         empty: "Todavía no hay videos."
         empty_live: "No hay nada en vivo ahora."
         load_more: "Cargar más"
+        source: "Origen"
+        sort: "Orden"
+        filter: "Filtro"
         tab_all: "Todo"
         tab_community: "Comunidad"
         tab_instance: "Instancia"

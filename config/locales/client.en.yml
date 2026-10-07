@@ -3,7 +3,7 @@ en:
     admin:
       site_settings:
         categories:
-          discourse_peertube_embed: "PeerTube Embed"
+          discourse_peertube_embed: "PeerTube"
   js:
     peertube_embed:
       play: "Play %{title}"
@@ -20,13 +20,23 @@ en:
       theater_exit: "Exit theater mode"
       open_on_instance: "Open on %{host}"
       composer:
-        button: "Insert PeerTube video"
+        button: "Add a PeerTube video"
         modal_title: "Insert a PeerTube video"
         url_label: "Video, live or playlist URL"
         url_placeholder: "https://tube.example.org/w/…"
         allowed_instances: "Allowed instances: %{instances}"
         invalid_url: "This is not a video, live or playlist URL from an allowed PeerTube instance."
         insert: "Insert"
+        tab_upload: "Upload video"
+        tab_link: "Paste a link"
+        file_label: "Video file"
+        title_label: "Title"
+        max_size: "Up to %{size} MB. PeerTube processes the video after the upload; its card appears when it is ready."
+        upload: "Upload"
+        uploading: "Uploading… %{percent}%"
+        cancel_upload: "Cancel upload"
+        confirm_cancel: "The upload is still running. Cancel it?"
+        upload_failed: "The upload failed."
       page:
         title: "Videos"
         sidebar_title: "PeerTube videos and live streams"
@@ -36,6 +46,9 @@ en:
         empty: "No videos yet."
         empty_live: "Nothing is live right now."
         load_more: "Load more"
+        source: "Source"
+        sort: "Sort"
+        filter: "Filter"
         tab_all: "All"
         tab_community: "Community"
         tab_instance: "Instance"

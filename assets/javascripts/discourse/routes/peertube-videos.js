@@ -13,6 +13,7 @@ export default class PeertubeVideosRoute extends DiscourseRoute {
     tab: { refreshModel: true },
     filter: { refreshModel: true },
     category_id: { refreshModel: true },
+    channel: { refreshModel: false },
   };
 
   beforeModel() {
