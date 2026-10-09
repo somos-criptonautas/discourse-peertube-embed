@@ -1,6 +1,8 @@
 # discourse-peertube-embed
 
-**English** · [Español](README.es.md)
+**ENGLISH** | [ESPAÑOL](README.es.md)
+
+Maintained by Criptonautas. Not affiliated with or endorsed by Discourse (Civilized Discourse Construction Kit, Inc.).
 
 > **Status: experimental (0.1.0).** Usable, but expect changes between versions; see [Known limitations](#known-limitations).
 
