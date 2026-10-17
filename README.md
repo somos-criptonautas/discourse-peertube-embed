@@ -127,3 +127,5 @@ Open an issue at <https://github.com/somos-criptonautas/discourse-peertube-embed
 ## License
 
 [MIT](LICENSE) © 2026 Criptonautas
+
+Text of this README under [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt).

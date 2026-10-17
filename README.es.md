@@ -127,3 +127,5 @@ Abrí un issue en <https://github.com/somos-criptonautas/discourse-peertube-embe
 ## Licencia
 
 [MIT](LICENSE) © 2026 Criptonautas
+
+Texto de este README bajo [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt).
