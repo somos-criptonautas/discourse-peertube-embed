@@ -16,6 +16,7 @@ const MAX_ATTEMPTS = 3;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Composer box: upload a video to PeerTube, or paste a PeerTube link.
+// Opened from /videos (no toolbarEvent) it only uploads and calls onUploaded.
 export default class PeertubeInsert extends Component {
   @service composer;
   @service currentUser;
@@ -36,6 +37,14 @@ export default class PeertubeInsert extends Component {
 
   get canUpload() {
     return !!this.currentUser?.can_upload_peertube_videos;
+  }
+
+  get canUploadAndLink() {
+    return this.canUpload && this.fromComposer;
+  }
+
+  get fromComposer() {
+    return !!this.args.model.toolbarEvent;
   }
 
   get instances() {
@@ -85,9 +94,16 @@ export default class PeertubeInsert extends Component {
   }
 
   insertUrl(url) {
-    // On its own line so it becomes a onebox.
-    this.args.model.toolbarEvent.addText(`\n${url}\n`);
-    this.args.closeModal();
+    if (this.fromComposer) {
+      // On its own line so it becomes a onebox.
+      this.args.model.toolbarEvent.addText(`\n${url}\n`);
+      this.args.closeModal();
+    } else {
+      const { onUploaded } = this.args.model;
+      const title = this.title;
+      this.args.closeModal();
+      onUploaded?.(url, title);
+    }
   }
 
   @action
@@ -121,7 +137,9 @@ export default class PeertubeInsert extends Component {
           filename: file.name,
           size: file.size,
           mime: file.type || "video/mp4",
-          category_id: this.composer.model?.categoryId,
+          category_id: this.fromComposer
+            ? this.composer.model?.categoryId
+            : null,
         },
       });
       this.sessionId = session.id;
@@ -209,12 +227,16 @@ export default class PeertubeInsert extends Component {
 
   <template>
     <DModal
-      @title={{i18n "peertube_embed.composer.modal_title"}}
+      @title={{if
+        this.fromComposer
+        (i18n "peertube_embed.composer.modal_title")
+        (i18n "peertube_embed.composer.tab_upload")
+      }}
       @closeModal={{this.close}}
       class="peertube-insert-modal"
     >
       <:body>
-        {{#if this.canUpload}}
+        {{#if this.canUploadAndLink}}
           <div class="peertube-insert-modal__tabs" role="tablist">
             <DButton
               class={{if (eq this.tab "upload") "btn-primary" "btn-default"}}

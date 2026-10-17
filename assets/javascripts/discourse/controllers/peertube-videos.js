@@ -1,88 +1,27 @@
 import { tracked } from "@glimmer/tracking";
 import Controller from "@ember/controller";
 import { action } from "@ember/object";
-import { ajax } from "discourse/lib/ajax";
-import { popupAjaxError } from "discourse/lib/ajax-error";
 
 export const ALL = "__all";
 
 export default class PeertubeVideosController extends Controller {
-  queryParams = ["tab", "filter", "category_id", "channel"];
+  queryParams = ["category", "sort"];
 
-  @tracked tab = null;
-  @tracked channel = null;
-  @tracked activeTab = "all";
-  @tracked filter = "all";
-  @tracked category_id = null;
-  @tracked videos = [];
-  @tracked categories = [];
-  @tracked more = false;
-  @tracked loadingMore = false;
+  @tracked category = null;
+  @tracked sort = null;
 
-  page = 0;
-  #generation = 0;
-
-  reset(model) {
-    this.#generation += 1;
-    this.loadingMore = false;
-    this.activeTab = model.tab;
-    this.videos = model.videos || [];
-    this.more = !!model.more;
-    this.categories = model.categories || this.categories;
-    this.page = 0;
+  // Changes when a filter changes, so the template rebuilds the browser.
+  get feedKey() {
+    return `${this.category}|${this.sort}`;
   }
 
   @action
-  setTab(tab) {
-    this.tab = tab;
-    this.channel = null;
+  setCategory(category) {
+    this.category = category === ALL ? null : category;
   }
 
   @action
-  setFilter(filter, event) {
-    event?.preventDefault();
-    this.filter = filter;
-  }
-
-  @action
-  setChannel(channel) {
-    this.channel = channel || null;
-  }
-
-  @action
-  setCategory(categoryId) {
-    this.category_id = categoryId === ALL ? null : categoryId;
-  }
-
-  @action
-  async loadMore() {
-    if (this.loadingMore || !this.more) {
-      return;
-    }
-
-    this.loadingMore = true;
-    const generation = this.#generation;
-    try {
-      const result = await ajax("/peertube/videos.json", {
-        data: {
-          filter: this.filter,
-          category_id: this.category_id,
-          page: this.page + 1,
-        },
-      });
-      if (generation !== this.#generation) {
-        // The filters changed while loading.
-        return;
-      }
-      this.page += 1;
-      this.videos = [...this.videos, ...result.videos];
-      this.more = result.more;
-    } catch (error) {
-      popupAjaxError(error);
-    } finally {
-      if (generation === this.#generation) {
-        this.loadingMore = false;
-      }
-    }
+  setSort(sort) {
+    this.sort = sort === "latest" ? null : sort;
   }
 }

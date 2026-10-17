@@ -16,19 +16,11 @@ module ::DiscoursePeertube
               .where.not(posts: { post_type: Post.types[:whisper] })
           end
 
-    # Ids of the first video of each topic. With `live_only`, the first live
-    # or upcoming one, preferring a stream that is on air.
-    def self.first_ids_per_topic(live_only: false)
-      scope = in_visible_posts
-      order = "posts.topic_id, posts.post_number, peertube_videos.position"
-
-      if live_only
-        scope = scope.where(live_state: %w[live waiting])
-        order =
-          "posts.topic_id, peertube_videos.live_state = 'live' DESC, posts.post_number, peertube_videos.position"
-      end
-
-      scope.select("DISTINCT ON (posts.topic_id) peertube_videos.id").order(Arel.sql(order))
+    # Ids of the first video of each topic.
+    def self.first_ids_per_topic
+      in_visible_posts.select("DISTINCT ON (posts.topic_id) peertube_videos.id").order(
+        Arel.sql("posts.topic_id, posts.post_number, peertube_videos.position"),
+      )
     end
 
     # { topic_id => Video } with the first PeerTube video of each topic.

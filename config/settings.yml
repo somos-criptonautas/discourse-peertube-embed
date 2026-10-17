@@ -24,11 +24,6 @@ discourse_peertube_embed:
   peertube_embed_home_instance:
     default: ""
     client: true
-  peertube_embed_videos_default_tab:
-    type: enum
-    default: all
-    enum: "DiscoursePeertube::DefaultTabSetting"
-    client: true
   peertube_embed_live_refresh_seconds:
     default: 60
     min: 60
@@ -50,6 +45,11 @@ discourse_peertube_embed:
     type: list
     list_type: simple
     default: ""
+  peertube_embed_upload_category:
+    type: enum
+    default: ""
+    enum: "DiscoursePeertube::UploadCategorySetting"
+    client: true
   peertube_embed_upload_allowed_groups:
     type: group_list
     list_type: compact

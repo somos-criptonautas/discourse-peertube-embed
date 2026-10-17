@@ -129,6 +129,16 @@ RSpec.describe DiscoursePeertube::UploadsController do
     expect(init.with(body: hash_including("channelId" => 7, "privacy" => 2))).to have_been_requested
   end
 
+  it "files every upload under the configured PeerTube category" do
+    SiteSetting.peertube_embed_upload_category = "100"
+    init = stub_init
+    sign_in(user)
+
+    start_upload
+    expect(response.status).to eq(200)
+    expect(init.with(body: hash_including("category" => 100))).to have_been_requested
+  end
+
   it "has no plugin size limit by default" do
     stub_init
     sign_in(user)

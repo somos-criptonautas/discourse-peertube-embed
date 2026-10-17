@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ::DiscoursePeertube
-  # Lists videos and channels of the home PeerTube instance. Responses are
+  # Lists videos and categories of the home PeerTube instance. Responses are
   # cached so visitors never reach the instance and it is not hammered.
   module InstanceClient
     SORTS = {
@@ -11,7 +11,7 @@ module ::DiscoursePeertube
     }.freeze
     PAGE_SIZE = 24
     LIST_TTL = 5.minutes
-    CHANNELS_TTL = 1.hour
+    CATEGORIES_TTL = 1.hour
     CHANNEL_NAME = /\A[a-zA-Z0-9_.\-]{1,64}\z/
     RANDOM_PAGES = 2
 
@@ -26,18 +26,17 @@ module ::DiscoursePeertube
     end
 
     # { total:, videos: [...] }, or nil when the instance cannot be reached.
-    def self.videos(sort: "latest", start: 0, count: PAGE_SIZE, channel: nil)
+    def self.videos(sort: "latest", start: 0, count: PAGE_SIZE, category: nil)
       return if host.nil?
-      return if channel && !valid_channel_name?(channel)
 
       if sort == "random"
-        random(count: count, channel: channel)
+        random(count: count, category: category)
       else
-        list(sort: sort, start: start, count: count, channel: channel)
+        list(sort: sort, start: start, count: count, category: category)
       end
     end
 
-    def self.list(sort:, start:, count:, channel:)
+    def self.list(sort:, start:, count:, category:)
       params = {
         start: [start.to_i, 0].max,
         count: count.to_i.clamp(1, 100),
@@ -45,9 +44,9 @@ module ::DiscoursePeertube
         isLocal: true,
       }
       params[:isLive] = true if sort == "live"
-      path = channel ? "/api/v1/video-channels/#{channel}/videos" : "/api/v1/videos"
+      params[:categoryOneOf] = category.to_i if category.to_i.positive?
 
-      json = cached_json("#{path}?#{params.to_query}", LIST_TTL)
+      json = cached_json("/api/v1/videos?#{params.to_query}", LIST_TTL)
       return if !json.is_a?(Hash) || !json["data"].is_a?(Array)
 
       {
@@ -57,8 +56,8 @@ module ::DiscoursePeertube
     end
 
     # The API has no random sort: read random pages of local videos and shuffle.
-    def self.random(count:, channel:)
-      first = list(sort: "latest", start: 0, count: 1, channel: channel)
+    def self.random(count:, category:)
+      first = list(sort: "latest", start: 0, count: 1, category: category)
       return if first.nil?
 
       total = first[:total]
@@ -68,50 +67,25 @@ module ::DiscoursePeertube
       starts = Array.new(RANDOM_PAGES) { rand(0..max_start) }.uniq
       videos =
         starts.flat_map do |start|
-          list(sort: "latest", start: start, count: count, channel: channel)&.dig(:videos) || []
+          list(sort: "latest", start: start, count: count, category: category)&.dig(:videos) || []
         end
 
       { total: total, videos: videos.uniq { |video| video[:uuid] }.shuffle.first(count) }
     end
 
-    def self.channels
+    # [{ id:, name: }] from the instance's video categories (an { "id" => label } map).
+    def self.categories
       return [] if host.nil?
 
-      json =
-        cached_json(
-          "/api/v1/video-channels?#{{ start: 0, count: 100, sort: "-createdAt" }.to_query}",
-          CHANNELS_TTL,
-        )
-      return [] if !json.is_a?(Hash) || !json["data"].is_a?(Array)
+      json = cached_json("/api/v1/videos/categories", CATEGORIES_TTL)
+      return [] if !json.is_a?(Hash)
 
-      json["data"]
-        .filter_map { |channel| normalize_channel(channel) }
-        .select { |channel| channel[:host] == host }
-    end
-
-    def self.channel(name)
-      return if host.nil? || !valid_channel_name?(name)
-
-      normalize_channel(cached_json("/api/v1/video-channels/#{name}", CHANNELS_TTL))
-    end
-
-    def self.normalize_channel(json)
-      return if !json.is_a?(Hash)
-
-      name = ApiClient.string(json["name"])
-      return if !valid_channel_name?(name)
-
-      channel_host = ApiClient.string(json["host"])&.downcase || host
-      {
-        name: name,
-        display_name: ApiClient.string(json["displayName"]) || name,
-        description: ApiClient.string(json["description"]),
-        host: channel_host,
-        avatar_url: ApiClient.image_url(channel_host, json["avatars"]),
-        banner_url: ApiClient.image_url(channel_host, json["banners"]),
-        followers: ApiClient.integer(json["followersCount"]),
-        url: "https://#{channel_host}/c/#{name}",
-      }
+      json
+        .filter_map do |id, label|
+          name = ApiClient.string(label)
+          { id: id.to_i, name: name } if id.to_s.match?(/\A\d+\z/) && name
+        end
+        .sort_by { |category| category[:name].downcase }
     end
 
     def self.cached_json(path, ttl)

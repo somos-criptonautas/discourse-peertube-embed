@@ -84,7 +84,8 @@ module ::DiscoursePeertube
             privacy: privacy_for(category),
             filename: File.basename(filename.to_s).presence || "video",
             waitTranscoding: false,
-          }.to_json,
+            category: SiteSetting.peertube_embed_upload_category.presence&.to_i,
+          }.compact.to_json,
         )
 
       case response.code

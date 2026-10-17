@@ -31,11 +31,11 @@ Soporte nativo de PeerTube para Discourse: los videos, transmisiones en vivo y l
   - Las subidas van a la instancia principal con una cuenta de servicio, en partes de 5 MB a través del foro (las credenciales nunca llegan al navegador; incluye progreso, reintentos y cancelación).
   - Canal: por categoría (`slug-de-categoría:canal`), o el canal por defecto.
   - La privacidad sigue a la categoría: categorías públicas → Pública, categorías restringidas → No listada.
+  - Toda subida recibe la categoría de PeerTube elegida en `peertube_embed_upload_category` (por ejemplo "Comunidad").
 - **Miniaturas en la lista de temas** para los temas con un video de PeerTube, con ▶ o EN VIVO superpuesto.
-- **Galería `/videos`** con un selector de origen (Todo / Comunidad / Instancia) y un enlace en la barra lateral:
-  - **Todo**: videos de la comunidad y de la instancia mezclados por fecha, cada uno con una insignia de origen.
-  - **Comunidad**: videos publicados en el foro, con filtros En vivo y categoría. Se indexan solos al procesar los posts; respeta los permisos de categorías y omite susurros y posts ocultos.
-  - **Instancia**: los videos locales de la instancia PeerTube principal, como la portada de PeerTube: Lo último, Tendencia, Al azar y En vivo, más un selector de canal que filtra la página (`?channel=`).
+- **Galería `/videos`** con los videos locales de la instancia PeerTube principal, como la portada de PeerTube, y un enlace en la barra lateral:
+  - Un selector de categoría (categorías de video de PeerTube, `?category=`) y un selector de orden: lo último, tendencia, al azar, en vivo (`?sort=`).
+  - Un botón **subir video** para los grupos permitidos: el video se sube a PeerTube y se abre un tema nuevo con su enlace.
 - **Los videos de la instancia se reproducen en un modal** dentro del foro, con enlace al tema si el video ya se publicó, o un botón **Comentar en el foro** que abre el editor con el enlace y el título del video.
 - **Eventos**: las instancias PeerTube se agregan a los hosts permitidos de transmisiones del plugin de eventos, así la URL de transmisión de un evento puede ser un vivo de PeerTube y se muestra en la tarjeta del evento junto al chat.
 - Emails, RSS y buscadores reciben una miniatura con enlace y el título.
@@ -61,14 +61,14 @@ Requiere Discourse 2026.9 o posterior (usa las rutas actuales de módulos del fr
 | `peertube_embed_composer_button` | true | Botón en la barra del editor. |
 | `peertube_embed_topic_list_thumbnails` | true | Miniaturas en la lista de temas. |
 | `peertube_embed_videos_page` | true | Galería `/videos` y enlace en la barra lateral. |
-| `peertube_embed_home_instance` | — | Instancia que se muestra en la pestaña Instancia (por defecto, la primera permitida). |
-| `peertube_embed_videos_default_tab` | all | Pestaña que abre primero: `all`, `community` o `instance`. |
+| `peertube_embed_home_instance` | — | Instancia que se muestra en `/videos` y recibe las subidas (por defecto, la primera permitida). |
 | `peertube_embed_live_refresh_seconds` | 60 | Intervalo de actualización del vivo (mín. 60). |
 | `peertube_embed_sync_event_livestream_hosts` | true | Agrega las instancias a los hosts permitidos de transmisiones de eventos. |
 | `peertube_embed_upload_enabled` | false | Subidas a PeerTube desde el editor. |
 | `peertube_embed_upload_username` / `_password` | — | Cuenta de servicio de PeerTube (la contraseña es un ajuste secreto). |
 | `peertube_embed_upload_channel` | — | Canal por defecto para las subidas. |
 | `peertube_embed_upload_category_channels` | — | Pares opcionales `slug-de-categoría:canal`. |
+| `peertube_embed_upload_category` | — | Categoría de PeerTube para toda subida, elegida entre las de la instancia. |
 | `peertube_embed_upload_allowed_groups` | admins, moderadores, NC2 | Quién puede subir. |
 | `peertube_embed_upload_max_size_mb` | 0 | Límite en MB; 0 = sin límite (deciden la cuota y los límites de PeerTube). |
 
@@ -81,7 +81,7 @@ rake posts:rebake_match["tube.example.org"]
 
 ## Datos y acceso a la red
 
-- **Servidor → PeerTube**: cuando se procesa un post con un enlace de PeerTube, el servidor pide `/api/v1/videos/<id>` (o `/api/v1/video-playlists/<id>`) a esa instancia. Una tarea programada (cada minuto) revisa los videos en vivo publicados en los últimos 90 días, hasta 30 por vez. Solo se contactan instancias permitidas, con el cliente HTTP de Discourse protegido contra SSRF y sus tiempos de espera habituales. No se envían datos de usuarios. La pestaña Instancia y las páginas de canales listan los videos y canales locales de la instancia principal a través del servidor, con caché de 5 minutos (videos) y 1 hora (canales), así los visitantes no contactan la instancia hasta que dan play.
+- **Servidor → PeerTube**: cuando se procesa un post con un enlace de PeerTube, el servidor pide `/api/v1/videos/<id>` (o `/api/v1/video-playlists/<id>`) a esa instancia. Una tarea programada (cada minuto) revisa los videos en vivo publicados en los últimos 90 días, hasta 30 por vez. Solo se contactan instancias permitidas, con el cliente HTTP de Discourse protegido contra SSRF y sus tiempos de espera habituales. No se envían datos de usuarios. `/videos` lista los videos y categorías locales de la instancia principal a través del servidor, con caché de 5 minutos (videos) y 1 hora (categorías), así los visitantes no contactan la instancia hasta que dan play.
 - **Subidas**: los archivos de video pasan por el servidor del foro hacia la instancia principal con la cuenta de servicio; el token de acceso se guarda en Redis hasta que vence.
 - **Navegador → PeerTube**: el iframe del reproductor después del clic (o enseguida si el clic para reproducir está desactivado), y las miniaturas si no se descargan localmente.
 - **Base de datos**: una tabla, `peertube_videos` (una fila por video y post: título, URL de miniatura, duración, estado del vivo). Se incluye en los backups.

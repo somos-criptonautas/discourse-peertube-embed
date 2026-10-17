@@ -7,8 +7,7 @@ en:
     peertube_embed_composer_button: "Add a composer toolbar button to insert a PeerTube video."
     peertube_embed_topic_list_thumbnails: "Show the video thumbnail next to topics that contain a PeerTube video."
     peertube_embed_videos_page: "Enable the /videos gallery page and its sidebar link."
-    peertube_embed_home_instance: "PeerTube instance shown in the /videos Instance tab. Leave empty to use the first allowed instance."
-    peertube_embed_videos_default_tab: "Tab opened first on /videos: all (community and instance mixed), community or instance."
+    peertube_embed_home_instance: "PeerTube instance shown on /videos and used for uploads. Leave empty to use the first allowed instance."
     peertube_embed_live_refresh_seconds: "How often, in seconds, the live state and viewer count of live videos are refreshed."
     peertube_embed_sync_event_livestream_hosts: "Add the PeerTube instances to the events livestream allowed hosts so an event's livestream URL can point to PeerTube."
     peertube_embed_upload_enabled: "Let allowed users upload videos to the home PeerTube instance from the composer."
@@ -16,6 +15,7 @@ en:
     peertube_embed_upload_password: "Password of the PeerTube upload account."
     peertube_embed_upload_channel: "Default PeerTube channel name for uploads (the part after /c/ in the channel URL)."
     peertube_embed_upload_category_channels: "Optional per-category channels, as category-slug:channel-name. Categories not listed use the default channel."
+    peertube_embed_upload_category: "PeerTube category given to every video uploaded from the forum. The list comes from the home instance."
     peertube_embed_upload_allowed_groups: "Groups allowed to upload videos to PeerTube."
     peertube_embed_upload_max_size_mb: "Maximum video size in MB for uploads. 0 means no limit here; PeerTube's quota and file size limits still apply."
   peertube_embed:

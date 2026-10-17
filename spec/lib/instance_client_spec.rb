@@ -44,14 +44,15 @@ RSpec.describe DiscoursePeertube::InstanceClient do
       )
     end
 
-    it "lists a channel's videos and rejects unsafe channel names" do
+    it "filters by category" do
       stub_instance_videos(
         [instance_video_json(uuid: "c-1", published_at: "2026-10-01T10:00:00.000Z")],
-        path: %r{/api/v1/video-channels/criptonautas/videos\?},
       )
 
-      expect(described_class.videos(channel: "criptonautas")[:videos].size).to eq(1)
-      expect(described_class.videos(channel: "../admin")).to be_nil
+      expect(described_class.videos(category: 100)[:videos].size).to eq(1)
+      expect(WebMock).to have_requested(:get, %r{/api/v1/videos\?}).with(
+        query: hash_including("categoryOneOf" => "100"),
+      )
     end
 
     it "builds a random selection from random pages" do
@@ -73,22 +74,22 @@ RSpec.describe DiscoursePeertube::InstanceClient do
     end
   end
 
-  describe ".channels" do
-    it "keeps only channels hosted on the instance" do
-      stub_request(:get, %r{/api/v1/video-channels\?}).to_return(
+  describe ".categories" do
+    it "returns the instance categories sorted by name and skips bad entries" do
+      stub_request(:get, "https://#{host}/api/v1/videos/categories").to_return(
         status: 200,
-        body: {
-          total: 2,
-          data: [
-            { name: "criptonautas", displayName: "Criptonautas", host: host, followersCount: 3 },
-            { name: "remote", displayName: "Remote", host: "elsewhere.example" },
-          ],
-        }.to_json,
+        body: { "2" => "Films", "100" => "comunidad", "x" => "Bad", "3" => nil }.to_json,
       )
 
-      channels = described_class.channels
-      expect(channels.map { |c| c[:name] }).to eq(%w[criptonautas])
-      expect(channels.first[:url]).to eq("https://#{host}/c/criptonautas")
+      expect(described_class.categories).to eq(
+        [{ id: 100, name: "comunidad" }, { id: 2, name: "Films" }],
+      )
+    end
+
+    it "is empty when the instance is unreachable" do
+      stub_request(:get, "https://#{host}/api/v1/videos/categories").to_return(status: 500)
+
+      expect(described_class.categories).to eq([])
     end
   end
 end

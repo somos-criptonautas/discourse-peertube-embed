@@ -27,7 +27,7 @@ require_relative "lib/discourse_peertube/url_parser"
 require_relative "lib/discourse_peertube/api_client"
 require_relative "lib/discourse_peertube/onebox_renderer"
 require_relative "lib/discourse_peertube/instance_client"
-require_relative "lib/discourse_peertube/default_tab_setting"
+require_relative "lib/discourse_peertube/upload_category_setting"
 require_relative "lib/discourse_peertube/uploader"
 require_relative "lib/onebox/engine/peertube_onebox"
 
@@ -36,7 +36,7 @@ after_initialize do
   require_relative "lib/discourse_peertube/events_sync"
 
   # Index the PeerTube videos of a post every time it is (re)cooked, so the
-  # /videos gallery and topic list thumbnails need no tag or manual step.
+  # topic links on /videos and topic list thumbnails need no manual step.
   on(:post_process_cooked) do |doc, post|
     DiscoursePeertube::PostIndexer.index(post, doc) if SiteSetting.peertube_embed_enabled
   end

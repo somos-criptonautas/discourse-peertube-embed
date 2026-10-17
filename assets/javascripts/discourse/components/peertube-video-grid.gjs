@@ -11,7 +11,7 @@ const PeertubeVideoGrid = <template>
     {{#if @videos.length}}
       <div class="peertube-videos-grid">
         {{#each @videos key="key" as |video|}}
-          <PeertubeVideoCard @video={{video}} @showSource={{@showSource}} />
+          <PeertubeVideoCard @video={{video}} />
         {{/each}}
       </div>
       {{#if @more}}
