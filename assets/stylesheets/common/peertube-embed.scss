@@ -356,6 +356,14 @@
   margin-top: 0.75em;
 }
 
+.peertube-insert-modal__channel {
+  width: 100%;
+
+  .select-kit-header .d-icon {
+    margin-inline-end: 0.5em;
+  }
+}
+
 .peertube-insert-modal__progress {
   width: 100%;
   margin-top: 1em;

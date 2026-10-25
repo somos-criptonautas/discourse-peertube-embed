@@ -29,7 +29,8 @@ Soporte nativo de PeerTube para Discourse: los videos, transmisiones en vivo y l
 - **Modo cine**: agranda el reproductor sin recargarlo (Esc para salir).
 - **Botón en el editor**: subí un video a PeerTube (solo grupos permitidos) o pegá una URL de PeerTube.
   - Las subidas van a la instancia principal con una cuenta de servicio, en partes de 5 MB a través del foro (las credenciales nunca llegan al navegador; incluye progreso, reintentos y cancelación).
-  - Canal: por categoría (`slug-de-categoría:canal`), o el canal por defecto.
+  - Canal: se elige en la ventana de subida entre los canales de la cuenta de subidas; arranca en el canal de la categoría (`slug-de-categoría:canal`) o el canal por defecto.
+  - Descripción opcional.
   - La privacidad sigue a la categoría: categorías públicas → Pública, categorías restringidas → No listada.
   - Toda subida recibe la categoría de PeerTube elegida en `peertube_embed_upload_category` (por ejemplo "Comunidad").
 - **Miniaturas en la lista de temas** para los temas con un video de PeerTube, con ▶ o EN VIVO superpuesto.

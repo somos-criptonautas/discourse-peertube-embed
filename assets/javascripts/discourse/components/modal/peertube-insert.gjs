@@ -1,11 +1,12 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { fn } from "@ember/helper";
+import { fn, hash } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { extractError } from "discourse/lib/ajax-error";
+import ComboBox from "discourse/select-kit/components/combo-box";
 import { eq, not } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import DModal from "discourse/ui-kit/d-modal";
@@ -31,9 +32,46 @@ export default class PeertubeInsert extends Component {
   @tracked progress = 0;
   @tracked uploading = false;
   @tracked uploadError = null;
+  @tracked channels = [];
+  @tracked channel = null;
+  @tracked description = "";
 
   sessionId = null;
   cancelled = false;
+
+  constructor() {
+    super(...arguments);
+    if (this.canUpload) {
+      this.loadChannels();
+    }
+  }
+
+  get categoryId() {
+    return this.fromComposer ? this.composer.model?.categoryId : null;
+  }
+
+  // The account's channels; starts on the category's channel.
+  async loadChannels() {
+    try {
+      const result = await ajax("/peertube/uploads/channels.json", {
+        data: { category_id: this.categoryId },
+      });
+      if (this.isDestroying) {
+        return;
+      }
+      this.channels = result.channels.map((c) => ({
+        id: c.name,
+        name: c.display_name,
+      }));
+      const names = this.channels.map((c) => c.id);
+      this.channel = names.includes(result.default)
+        ? result.default
+        : names[0] || null;
+    } catch (error) {
+      this.uploadError =
+        extractError(error) || i18n("peertube_embed.composer.upload_failed");
+    }
+  }
 
   get canUpload() {
     return !!this.currentUser?.can_upload_peertube_videos;
@@ -53,6 +91,10 @@ export default class PeertubeInsert extends Component {
 
   get isValid() {
     return !!parsePeertubeUrl(this.url.trim(), this.siteSettings);
+  }
+
+  get canSubmitUpload() {
+    return !!this.file && !!this.channel;
   }
 
   get percent() {
@@ -93,6 +135,16 @@ export default class PeertubeInsert extends Component {
     this.title = event.target.value;
   }
 
+  @action
+  onDescription(event) {
+    this.description = event.target.value;
+  }
+
+  @action
+  setChannel(channel) {
+    this.channel = channel;
+  }
+
   insertUrl(url) {
     if (this.fromComposer) {
       // On its own line so it becomes a onebox.
@@ -119,7 +171,7 @@ export default class PeertubeInsert extends Component {
   @action
   async upload(event) {
     event?.preventDefault();
-    if (!this.file || this.uploading) {
+    if (!this.canSubmitUpload || this.uploading) {
       return;
     }
 
@@ -137,9 +189,9 @@ export default class PeertubeInsert extends Component {
           filename: file.name,
           size: file.size,
           mime: file.type || "video/mp4",
-          category_id: this.fromComposer
-            ? this.composer.model?.categoryId
-            : null,
+          category_id: this.categoryId,
+          channel: this.channel,
+          description: this.description,
         },
       });
       this.sessionId = session.id;
@@ -281,6 +333,31 @@ export default class PeertubeInsert extends Component {
               disabled={{this.uploading}}
               {{on "input" this.onTitle}}
             />
+            {{#if this.channels.length}}
+              <label>{{i18n "peertube_embed.composer.channel_label"}}</label>
+              <ComboBox
+                @content={{this.channels}}
+                @value={{this.channel}}
+                @onChange={{this.setChannel}}
+                @options={{hash
+                  icon="ph-television-simple"
+                  disabled=this.uploading
+                }}
+                class="peertube-insert-modal__channel"
+              />
+            {{/if}}
+            <label for="peertube-upload-description">
+              {{i18n "peertube_embed.composer.description_label"}}
+            </label>
+            <textarea
+              id="peertube-upload-description"
+              class="peertube-insert-modal__input"
+              rows="3"
+              maxlength="10000"
+              value={{this.description}}
+              disabled={{this.uploading}}
+              {{on "input" this.onDescription}}
+            ></textarea>
             {{#if this.uploading}}
               <progress
                 class="peertube-insert-modal__progress"
@@ -340,7 +417,7 @@ export default class PeertubeInsert extends Component {
               @icon="upload"
               @label="peertube_embed.composer.upload"
               @action={{this.upload}}
-              @disabled={{not this.file}}
+              @disabled={{not this.canSubmitUpload}}
             />
           {{/if}}
         {{else}}

@@ -29,7 +29,8 @@ Native PeerTube support for Discourse: videos, live streams and playlists from y
 - **Theater mode**: enlarges the player without reloading it (Esc to exit).
 - **Composer button**: upload a video to PeerTube (allowed groups only) or paste a PeerTube URL.
   - Uploads go to the home instance as one service account, in 5 MB chunks through the forum (credentials never reach the browser; progress, retry and cancel are built in).
-  - Channel: per-category (`category-slug:channel`), else the default channel.
+  - Channel: picked in the upload window from the upload account's own channels; it starts on the category's channel (`category-slug:channel`) or the default channel.
+  - Optional description.
   - Privacy follows the category: public categories → Public, restricted categories → Unlisted.
   - Every upload gets the PeerTube category set in `peertube_embed_upload_category` (for example "Comunidad").
 - **Topic list thumbnails** for topics that contain a PeerTube video, with a ▶ or LIVE overlay.

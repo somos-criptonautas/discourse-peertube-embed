@@ -26,6 +26,7 @@ es:
       too_large: "Este video supera el tamaño permitido."
       quota: "Se alcanzó la cuota de videos de PeerTube."
       no_channel: "No hay un canal de PeerTube configurado para las subidas."
+      invalid_channel: "Elegí uno de los canales de la cuenta de subidas."
       auth_failed: "El foro no pudo iniciar sesión en PeerTube. Revisá la cuenta de subidas en los ajustes."
       unreachable: "No se pudo conectar con la instancia PeerTube."
       not_found: "Esta subida ya no existe. Empezala de nuevo."

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Upload window: channel picker (only the upload account's channels, checked on the server) and an optional description, from the composer and from `/videos`.
 - `/videos` shows only the home instance's videos, with a category dropdown and a sort dropdown (Phosphor icons); the source selector, the Community and All views and `/videos/c/<channel>` are gone.
 - **Upload video** button on `/videos`; the upload opens a new topic with the video.
 - New setting `peertube_embed_upload_category`: the PeerTube category given to every upload, chosen from the instance's categories. `peertube_embed_videos_default_tab` is removed.

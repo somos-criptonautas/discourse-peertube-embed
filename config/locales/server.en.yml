@@ -26,6 +26,7 @@ en:
       too_large: "This video is larger than the allowed size."
       quota: "The PeerTube video quota has been reached."
       no_channel: "No PeerTube channel is configured for uploads."
+      invalid_channel: "Pick one of the upload account's channels."
       auth_failed: "The forum could not sign in to PeerTube. Check the upload account settings."
       unreachable: "The PeerTube instance could not be reached."
       not_found: "This upload no longer exists. Start it again."

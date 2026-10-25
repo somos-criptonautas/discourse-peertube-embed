@@ -12,6 +12,7 @@ module ::DiscoursePeertube
     PRIVACY_PUBLIC = 1
     PRIVACY_UNLISTED = 2
     NAME_RANGE = (3..120)
+    DESCRIPTION_RANGE = (3..10_000)
 
     class Error < StandardError
       attr_reader :code, :details
@@ -59,15 +60,46 @@ module ::DiscoursePeertube
       category&.read_restricted? ? PRIVACY_UNLISTED : PRIVACY_PUBLIC
     end
 
-    def self.start(user:, name:, filename:, size:, mime:, category:)
+    # Channels the upload account owns, the only ones it can upload to:
+    # [{ id:, name:, display_name: }].
+    def self.channels
+      key =
+        "peertube_embed:upload_channels:#{InstanceClient.host}:#{Digest::SHA1.hexdigest(SiteSetting.peertube_embed_upload_username.to_s)}"
+      cached = Discourse.cache.read(key)
+      return cached if cached
+
+      me = parse(authorized_request(:get, "/api/v1/users/me"))
+      list =
+        Array(me["videoChannels"]).filter_map do |channel|
+          next if !channel.is_a?(Hash) || !channel["id"].is_a?(Integer)
+          name = ApiClient.string(channel["name"])
+          next if !InstanceClient.valid_channel_name?(name)
+          {
+            id: channel["id"],
+            name: name,
+            display_name: ApiClient.string(channel["displayName"]) || name,
+          }
+        end
+      Discourse.cache.write(key, list, expires_in: CHANNEL_TTL) if list.present?
+      list
+    end
+
+    # `channel` is the user's pick; it must be one of the account's channels.
+    def self.start(user:, name:, filename:, size:, mime:, category:, channel: nil, description: nil)
       raise Error.new(:not_allowed) if !allowed?(user)
       raise Error.new(:invalid_file) if !mime.to_s.start_with?("video/") || size.to_i <= 0
       max_mb = SiteSetting.peertube_embed_upload_max_size_mb
       raise Error.new(:too_large) if max_mb.positive? && size > max_mb * 1024 * 1024
 
-      channel = channel_for(category)
-      channel_id = channel && channel_id(channel)
-      raise Error.new(:no_channel) if channel_id.nil?
+      owned = channels
+      if channel.present?
+        channel_id = owned.find { |c| c[:name] == channel }&.dig(:id)
+        raise Error.new(:invalid_channel) if channel_id.nil?
+      else
+        default = channel_for(category)
+        channel_id = owned.find { |c| c[:name] == default }&.dig(:id)
+        raise Error.new(:no_channel) if channel_id.nil?
+      end
 
       response =
         authorized_request(
@@ -85,6 +117,7 @@ module ::DiscoursePeertube
             filename: File.basename(filename.to_s).presence || "video",
             waitTranscoding: false,
             category: SiteSetting.peertube_embed_upload_category.presence&.to_i,
+            description: video_description(description),
           }.compact.to_json,
         )
 
@@ -180,23 +213,18 @@ module ::DiscoursePeertube
       candidate.truncate(NAME_RANGE.max)
     end
 
+    # PeerTube rejects descriptions under 3 characters; those are dropped.
+    def self.video_description(text)
+      text = text.to_s.strip
+      text.truncate(DESCRIPTION_RANGE.max) if text.length >= DESCRIPTION_RANGE.min
+    end
+
     def self.upload_id_from(location)
       return if location.blank?
 
       Rack::Utils.parse_query(URI.parse(location).query.to_s)["upload_id"].presence
     rescue URI::InvalidURIError
       nil
-    end
-
-    def self.channel_id(name)
-      key = "peertube_embed:upload_channel:#{InstanceClient.host}:#{name}"
-      cached = Discourse.cache.read(key)
-      return cached if cached
-
-      json = ApiClient.get_json(InstanceClient.host, "/api/v1/video-channels/#{name}")
-      id = json.is_a?(Hash) && json["id"].is_a?(Integer) ? json["id"] : nil
-      Discourse.cache.write(key, id, expires_in: CHANNEL_TTL) if id
-      id
     end
 
     def self.session_key(id)

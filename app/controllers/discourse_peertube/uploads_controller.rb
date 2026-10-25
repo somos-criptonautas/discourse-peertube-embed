@@ -33,12 +33,20 @@ module ::DiscoursePeertube
              status: status
     end
 
-    # POST /peertube/uploads.json { name, filename, size, mime, category_id }
+    # GET /peertube/uploads/channels.json?category_id=
+    # The account's channels and the one picked by default for the category.
+    def channels
+      raise Discourse::InvalidAccess if !Uploader.allowed?(current_user)
+
+      render json: {
+               channels: Uploader.channels.map { |c| c.slice(:name, :display_name) },
+               default: Uploader.channel_for(category_param),
+             }
+    end
+
+    # POST /peertube/uploads.json { name, filename, size, mime, category_id, channel, description }
     def create
       RateLimiter.new(current_user, "peertube-embed-upload", 20, 1.hour).performed!
-
-      category = Category.find_by(id: params[:category_id]) if params[:category_id].present?
-      category = nil if category && !guardian.can_see_category?(category)
 
       render json:
                Uploader.start(
@@ -47,7 +55,9 @@ module ::DiscoursePeertube
                  filename: params.require(:filename).to_s,
                  size: params.require(:size).to_i,
                  mime: params.require(:mime).to_s,
-                 category: category,
+                 category: category_param,
+                 channel: params[:channel].presence&.to_s,
+                 description: params[:description],
                )
     end
 
@@ -66,6 +76,13 @@ module ::DiscoursePeertube
     def destroy
       Uploader.cancel(user: current_user, id: params[:id])
       render json: success_json
+    end
+
+    private
+
+    def category_param
+      category = Category.find_by(id: params[:category_id]) if params[:category_id].present?
+      category if category && guardian.can_see_category?(category)
     end
   end
 end

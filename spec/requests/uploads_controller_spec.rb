@@ -30,13 +30,14 @@ RSpec.describe DiscoursePeertube::UploadsController do
       status: 200,
       body: { access_token: "tok", expires_in: 3600 }.to_json,
     )
-    stub_request(:get, "#{api}/video-channels/comunidad").to_return(
+    stub_request(:get, "#{api}/users/me").to_return(
       status: 200,
-      body: { id: 7, name: "comunidad" }.to_json,
-    )
-    stub_request(:get, "#{api}/video-channels/trading-channel").to_return(
-      status: 200,
-      body: { id: 9, name: "trading-channel" }.to_json,
+      body: {
+        videoChannels: [
+          { id: 7, name: "comunidad", displayName: "Comunidad" },
+          { id: 9, name: "trading-channel", displayName: "Trading" },
+        ],
+      }.to_json,
     )
   end
 
@@ -49,7 +50,7 @@ RSpec.describe DiscoursePeertube::UploadsController do
     )
   end
 
-  def start_upload(category_id: nil, size: 10)
+  def start_upload(category_id: nil, size: 10, **extra)
     post "/peertube/uploads.json",
          params: {
            name: "My video",
@@ -57,6 +58,7 @@ RSpec.describe DiscoursePeertube::UploadsController do
            size: size,
            mime: "video/mp4",
            category_id: category_id,
+           **extra,
          }
   end
 
@@ -137,6 +139,38 @@ RSpec.describe DiscoursePeertube::UploadsController do
     start_upload
     expect(response.status).to eq(200)
     expect(init.with(body: hash_including("category" => 100))).to have_been_requested
+  end
+
+  it "lists the account's channels with the category's default" do
+    sign_in(user)
+
+    get "/peertube/uploads/channels.json", params: { category_id: category.id }
+    expect(response.parsed_body).to eq(
+      "channels" => [
+        { "name" => "comunidad", "display_name" => "Comunidad" },
+        { "name" => "trading-channel", "display_name" => "Trading" },
+      ],
+      "default" => "trading-channel",
+    )
+
+    sign_in(newbie)
+    get "/peertube/uploads/channels.json"
+    expect(response.status).to eq(403)
+  end
+
+  it "uploads to the picked channel with a description, and only to owned channels" do
+    init = stub_init
+    sign_in(user)
+
+    start_upload(channel: "comunidad", description: "  Weekly recap  ")
+    expect(response.status).to eq(200)
+    expect(
+      init.with(body: hash_including("channelId" => 7, "description" => "Weekly recap")),
+    ).to have_been_requested
+
+    start_upload(channel: "someone-else")
+    expect(response.status).to eq(422)
+    expect(response.parsed_body["error_type"]).to eq("invalid_channel")
   end
 
   it "has no plugin size limit by default" do
