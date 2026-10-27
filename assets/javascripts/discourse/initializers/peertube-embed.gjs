@@ -9,8 +9,12 @@ import {
 } from "../lib/peertube-url";
 
 const ONEBOX_SELECTOR = "div.peertube-onebox";
+// discourse-events renders the event's livestream onebox in this section.
+const EVENT_LIVESTREAM_SELECTOR = ".event-livestream";
 
-function renderPlayer(element, video, cooked, helper, api) {
+// `inPlace` keeps the onebox element and swaps its content, for oneboxes
+// rendered by another component that still owns that element.
+function renderPlayer(element, video, cooked, helper, api, inPlace = false) {
   const onLoaded = () => {
     const postId = cooked.closest("article")?.dataset?.postId;
     if (postId) {
@@ -30,7 +34,39 @@ function renderPlayer(element, video, cooked, helper, api) {
     { video, onLoaded }
   );
 
-  element.replaceWith(wrapper);
+  if (inPlace) {
+    element.replaceChildren(wrapper);
+    element.classList.add("--upgraded");
+  } else {
+    element.replaceWith(wrapper);
+  }
+}
+
+// The event card renders after the post (and re-renders on updates), so its
+// livestream onebox is upgraded whenever it appears.
+function watchEventLivestream(cooked, helper, api, siteSettings) {
+  if (!cooked.querySelector(".discourse-post-event")) {
+    return;
+  }
+
+  const upgrade = () => {
+    cooked
+      .querySelectorAll(
+        `${EVENT_LIVESTREAM_SELECTOR} ${ONEBOX_SELECTOR}:not(.--upgraded)`
+      )
+      .forEach((element) => {
+        const video = attributesFromOnebox(element, siteSettings);
+        if (video) {
+          renderPlayer(element, video, cooked, helper, api, true);
+        }
+      });
+  };
+
+  upgrade();
+  new MutationObserver(upgrade).observe(cooked, {
+    childList: true,
+    subtree: true,
+  });
 }
 
 // Server-rendered cards outside the post stream (event livestream card,
@@ -85,6 +121,9 @@ export default {
           }
 
           cooked.querySelectorAll(ONEBOX_SELECTOR).forEach((element) => {
+            if (element.closest(EVENT_LIVESTREAM_SELECTOR)) {
+              return;
+            }
             const video = attributesFromOnebox(element, siteSettings);
             if (video) {
               renderPlayer(element, video, cooked, helper, api);
@@ -98,6 +137,8 @@ export default {
               renderPlayer(element, video, cooked, helper, api);
             }
           });
+
+          watchEventLivestream(cooked, helper, api, siteSettings);
         },
         { onlyStream: true }
       );

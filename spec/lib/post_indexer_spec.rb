@@ -35,6 +35,35 @@ RSpec.describe DiscoursePeertube::PostIndexer do
     expect(videos.first.viewers).to eq(12)
   end
 
+  it "indexes a PeerTube event livestream after the post's own videos" do
+    skip "discourse-events is not loaded" if !defined?(DiscourseEvents::Events::Event)
+
+    url = "https://#{PeertubeSpecHelpers::HOST}/w/event-live"
+    allow(DiscourseEvents::Events::Event).to receive(:find_by).with(id: post.id).and_return(
+      double(livestream?: true, livestream_url: url),
+    )
+    allow(Oneboxer).to receive(:cached_onebox).with(url).and_return(
+      onebox_html(uuid: "event-live", live: true),
+    )
+
+    index(onebox_html(uuid: "aaa"))
+
+    videos = DiscoursePeertube::Video.where(post_id: post.id).order(:position)
+    expect(videos.map(&:uuid)).to eq(%w[aaa event-live])
+    expect(videos.last.is_live).to eq(true)
+  end
+
+  it "skips event livestreams that are not on an allowed instance" do
+    skip "discourse-events is not loaded" if !defined?(DiscourseEvents::Events::Event)
+
+    allow(DiscourseEvents::Events::Event).to receive(:find_by).with(id: post.id).and_return(
+      double(livestream?: true, livestream_url: "https://youtube.com/watch?v=x"),
+    )
+
+    index(onebox_html(uuid: "aaa"))
+    expect(DiscoursePeertube::Video.where(post_id: post.id).pluck(:uuid)).to eq(%w[aaa])
+  end
+
   it "removes rows when the post is destroyed" do
     index(onebox_html(uuid: "aaa"))
     post.destroy!

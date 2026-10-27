@@ -38,7 +38,7 @@ Native PeerTube support for Discourse: videos, live streams and playlists from y
   - A category dropdown (PeerTube video categories, `?category=`) and a sort dropdown: latest, trending, random, live (`?sort=`).
   - An **Upload video** button for allowed groups: the video is uploaded to PeerTube and a new topic opens with its link.
 - **Instance videos play in a modal** on the forum, with a link to the forum topic when the video was already posted, or a **Discuss in forum** button that opens the composer with the video link and title.
-- **Events**: PeerTube instances are added to the events plugin's livestream allowed hosts, so an event's livestream URL can be a PeerTube live and is shown on the event card next to the event chat.
+- **Events**: PeerTube instances are added to the events plugin's livestream allowed hosts, so an event's livestream URL can be a PeerTube live. On the event card it gets the full player, with the live badge and theater mode, next to the event chat.
 - Emails, RSS and crawlers get a linked thumbnail and title.
 
 ## Installation
@@ -100,9 +100,9 @@ rake posts:rebake_match["tube.example.org"]
 
 ## Known limitations
 
-- The event livestream card gets a plain click-to-play (no live badge or theater mode).
-- Emails and RSS show a static thumbnail and title.
-- Only Discourse `main` is tested in CI; there are no browser tests for the player or gallery yet.
+- Emails and RSS show a linked thumbnail and title: those readers do not run players.
+- CI tests against Discourse `latest` only.
+- The event card player depends on the events plugin's markup; if it changes, the card falls back to a plain click-to-play.
 
 ## Live streaming with PeerTube
 

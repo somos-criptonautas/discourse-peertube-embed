@@ -38,7 +38,7 @@ Soporte nativo de PeerTube para Discourse: los videos, transmisiones en vivo y l
   - Un selector de categoría (categorías de video de PeerTube, `?category=`) y un selector de orden: lo último, tendencia, al azar, en vivo (`?sort=`).
   - Un botón **subir video** para los grupos permitidos: el video se sube a PeerTube y se abre un tema nuevo con su enlace.
 - **Los videos de la instancia se reproducen en un modal** dentro del foro, con enlace al tema si el video ya se publicó, o un botón **Comentar en el foro** que abre el editor con el enlace y el título del video.
-- **Eventos**: las instancias PeerTube se agregan a los hosts permitidos de transmisiones del plugin de eventos, así la URL de transmisión de un evento puede ser un vivo de PeerTube y se muestra en la tarjeta del evento junto al chat.
+- **Eventos**: las instancias PeerTube se agregan a los hosts permitidos de transmisiones del plugin de eventos, así la URL de transmisión de un evento puede ser un vivo de PeerTube. En la tarjeta del evento tiene el reproductor completo, con insignia de vivo y modo cine, junto al chat.
 - Emails, RSS y buscadores reciben una miniatura con enlace y el título.
 
 ## Instalación
@@ -100,9 +100,9 @@ rake posts:rebake_match["tube.example.org"]
 
 ## Limitaciones conocidas
 
-- La tarjeta de transmisión del evento tiene un clic para reproducir simple (sin insignia de vivo ni modo cine).
-- Emails y RSS muestran una miniatura y el título estáticos.
-- El CI solo prueba Discourse `main`; todavía no hay pruebas de navegador del reproductor ni de la galería.
+- Emails y RSS muestran una miniatura con enlace y el título: esos lectores no ejecutan reproductores.
+- El CI prueba solo contra Discourse `latest`.
+- El reproductor de la tarjeta del evento depende del HTML del plugin de eventos; si cambia, la tarjeta vuelve a un clic para reproducir simple.
 
 ## Transmisiones en vivo con PeerTube
 

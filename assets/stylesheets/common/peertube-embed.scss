@@ -9,6 +9,16 @@
   background: var(--secondary);
 }
 
+// Event card onebox turned into a player: the player draws its own frame.
+.peertube-onebox.--upgraded {
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: none;
+}
+
 .peertube-player__frame,
 .peertube-onebox__link {
   position: relative;

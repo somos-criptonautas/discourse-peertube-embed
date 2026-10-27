@@ -6,7 +6,7 @@ module ::DiscoursePeertube
     ID_FORMAT = /\A[a-zA-Z0-9-]{1,64}\z/
 
     def self.index(post, doc)
-      entries = extract(doc)
+      entries = (extract(doc) + event_livestream(post)).uniq { |e| [e[:host], e[:uuid]] }
       previous = Video.where(post_id: post.id).index_by(&:key)
 
       Video.transaction do
@@ -31,6 +31,22 @@ module ::DiscoursePeertube
         # Idempotent if the same post is processed twice at once.
         Video.upsert_all(rows, unique_by: %i[post_id host uuid])
       end
+    end
+
+    # discourse-events keeps an event's livestream URL outside the post body;
+    # indexing it gives the event card a live badge and live refreshes.
+    def self.event_livestream(post)
+      return [] if !defined?(DiscourseEvents::Events::Event)
+
+      event = DiscourseEvents::Events::Event.find_by(id: post.id)
+      url = event&.livestream_url if event.try(:livestream?)
+      return [] if url.blank? || UrlParser.parse(url).nil?
+
+      html = Oneboxer.cached_onebox(url).presence || Oneboxer.onebox(url)
+      html.present? ? extract(Nokogiri::HTML5.fragment(html)) : []
+    rescue StandardError => e
+      Rails.logger.warn("[discourse-peertube-embed] event livestream #{post.id}: #{e.class}")
+      []
     end
 
     def self.extract(doc)

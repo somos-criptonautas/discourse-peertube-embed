@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Event livestream card: full player with live badge and theater mode; the event's PeerTube livestream is indexed with the post so its live state refreshes.
+- Browser (system) tests for click-to-play, `/videos` filtering and the upload window's channel picker.
 - Upload window: channel picker (only the upload account's channels, checked on the server) and an optional description, from the composer and from `/videos`.
 - `/videos` shows only the home instance's videos, with a category dropdown and a sort dropdown (Phosphor icons); the source selector, the Community and All views and `/videos/c/<channel>` are gone.
 - **Upload video** button on `/videos`; the upload opens a new topic with the video.
