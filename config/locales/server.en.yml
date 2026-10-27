@@ -18,6 +18,9 @@ en:
     peertube_embed_upload_category: "PeerTube category given to every video uploaded from the forum. The list comes from the home instance."
     peertube_embed_upload_allowed_groups: "Groups allowed to upload videos to PeerTube."
     peertube_embed_upload_max_size_mb: "Maximum video size in MB for uploads. 0 means no limit here; PeerTube's quota and file size limits still apply."
+    peertube_embed_upload_review_enabled: "Send videos uploaded from the forum to the review queue. They stay unlisted on PeerTube until a moderator approves them."
+    peertube_embed_upload_review_skip_groups: "Groups whose uploads skip review."
+    peertube_embed_upload_badge_enabled: "Grant the Videonaut badge for every published upload."
   peertube_embed:
     upload_errors:
       not_allowed: "You are not allowed to upload videos."
@@ -33,3 +36,28 @@ en:
       offset_mismatch: "The upload got out of sync and will resume."
       invalid_chunk: "Invalid upload data."
       failed: "PeerTube rejected the upload."
+  discourse_peertube_embed:
+    reviewables:
+      actions:
+        approve_video:
+          title: "Approve video"
+          description: "Publish the video on PeerTube with its final privacy and tell the uploader."
+          complete: "Video approved and published."
+        reject_video:
+          title: "Reject video"
+          confirm: "Reject this video? It will be deleted from PeerTube."
+          complete: "Video rejected; it is being deleted from PeerTube."
+  badges:
+    videonauta:
+      name: "Videonaut"
+      description: "Shared a video with the community from our PeerTube."
+      long_description: "Granted for every video uploaded from the forum and published on our PeerTube instance."
+  system_messages:
+    peertube_video_approved:
+      title: "Your video was approved"
+      subject_template: "Your video was approved"
+      text_body_template: "Your video is now published:\n\n%{url}\n\nYou can share it in a topic whenever you like."
+    peertube_video_rejected:
+      title: "Your video was not approved"
+      subject_template: "Your video was not approved"
+      text_body_template: "A moderator did not approve your video \"%{title}\", so it was removed from PeerTube."

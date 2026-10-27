@@ -173,6 +173,62 @@ RSpec.describe DiscoursePeertube::UploadsController do
     expect(response.parsed_body["error_type"]).to eq("invalid_channel")
   end
 
+  def complete_upload(**params)
+    start_upload(size: 4, **params)
+    id = response.parsed_body["id"]
+    stub_request(:put, "#{api}/videos/upload-resumable?upload_id=abc123").to_return(
+      status: 200,
+      body: { video: { shortUUID: "kkGMgK9Ztn" } }.to_json,
+    )
+    put "/peertube/uploads/#{id}.json?offset=0",
+        params: "abcd",
+        headers: {
+          "CONTENT_TYPE" => "application/octet-stream",
+        }
+    response.parsed_body
+  end
+
+  describe "review and badge" do
+    it "grants the Videonauta badge for each published upload" do
+      stub_init
+      sign_in(user)
+
+      expect(complete_upload["url"]).to eq("https://#{host}/w/kkGMgK9Ztn")
+      complete_upload
+
+      badge = DiscoursePeertube::VideoBadge.badge
+      expect(UserBadge.where(user: user, badge: badge).count).to eq(2)
+      expect(DiscoursePeertube::VideoUpload.where(user: user).pluck(:status).uniq).to eq(
+        ["approved"],
+      )
+    end
+
+    it "holds uploads for review: unlisted, no link, queued" do
+      SiteSetting.peertube_embed_upload_review_enabled = true
+      init = stub_init
+      sign_in(user)
+
+      body = complete_upload(category_id: category.id)
+      expect(body).to eq("done" => true, "pending" => true)
+      expect(init.with(body: hash_including("privacy" => 2))).to have_been_requested
+
+      upload = DiscoursePeertube::VideoUpload.last
+      expect(upload).to be_pending
+      expect(upload.privacy).to eq(1)
+      expect(DiscoursePeertube::ReviewableVideo.pending.find_by(target: upload)).to be_present
+      expect(UserBadge.where(user: user).count).to eq(0)
+    end
+
+    it "lets skip groups publish right away" do
+      SiteSetting.peertube_embed_upload_review_enabled = true
+      stub_init
+      admin = Fabricate(:admin, refresh_auto_groups: true)
+      sign_in(admin)
+
+      expect(complete_upload["url"]).to be_present
+    end
+  end
+
   it "has no plugin size limit by default" do
     stub_init
     sign_in(user)

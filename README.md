@@ -31,6 +31,8 @@ Native PeerTube support for Discourse: videos, live streams and playlists from y
   - Uploads go to the home instance as one service account, in 5 MB chunks through the forum (credentials never reach the browser; progress, retry and cancel are built in).
   - Channel: picked in the upload window from the upload account's own channels; it starts on the category's channel (`category-slug:channel`) or the default channel.
   - Optional description.
+  - **Review (optional)**: with `peertube_embed_upload_review_enabled`, uploads stay unlisted on PeerTube and go to Discourse's Review queue. Approving gives the video its final privacy and messages the uploader with the link; rejecting deletes it from PeerTube. Groups in `peertube_embed_upload_review_skip_groups` (staff by default) skip review.
+  - **Videonaut badge**: granted for every published upload (shown with a count); rename or restyle it in Admin → Badges.
   - Privacy follows the category: public categories → Public, restricted categories → Unlisted.
   - Every upload gets the PeerTube category set in `peertube_embed_upload_category` (for example "Comunidad").
 - **Topic list thumbnails** for topics that contain a PeerTube video, with a ▶ or LIVE overlay.
@@ -71,6 +73,9 @@ Requires Discourse 2026.9 or newer (it uses the current frontend module paths). 
 | `peertube_embed_upload_category_channels` | — | Optional `category-slug:channel` pairs. |
 | `peertube_embed_upload_category` | — | PeerTube category for every upload, picked from the instance's categories. |
 | `peertube_embed_upload_allowed_groups` | admins, moderators, TL2 | Who can upload. |
+| `peertube_embed_upload_review_enabled` | false | Hold uploads for moderator approval. |
+| `peertube_embed_upload_review_skip_groups` | staff | Groups whose uploads skip review. |
+| `peertube_embed_upload_badge_enabled` | true | Grant the Videonaut badge per published upload. |
 | `peertube_embed_upload_max_size_mb` | 0 | Upload size limit in MB; 0 = no limit (PeerTube's quota and limits decide). |
 
 After adding an instance, rebake the posts that already link to it so they get the new onebox and are indexed:

@@ -55,6 +55,15 @@ discourse_peertube_embed:
     list_type: compact
     default: "1|2|12"
     allow_any: false
+  peertube_embed_upload_review_enabled:
+    default: false
+  peertube_embed_upload_review_skip_groups:
+    type: group_list
+    list_type: compact
+    default: "3"
+    allow_any: false
+  peertube_embed_upload_badge_enabled:
+    default: true
   peertube_embed_upload_max_size_mb:
     default: 0
     min: 0

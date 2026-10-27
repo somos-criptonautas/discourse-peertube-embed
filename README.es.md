@@ -31,6 +31,8 @@ Soporte nativo de PeerTube para Discourse: los videos, transmisiones en vivo y l
   - Las subidas van a la instancia principal con una cuenta de servicio, en partes de 5 MB a través del foro (las credenciales nunca llegan al navegador; incluye progreso, reintentos y cancelación).
   - Canal: se elige en la ventana de subida entre los canales de la cuenta de subidas; arranca en el canal de la categoría (`slug-de-categoría:canal`) o el canal por defecto.
   - Descripción opcional.
+  - **Revisión (opcional)**: con `peertube_embed_upload_review_enabled`, las subidas quedan no listadas en PeerTube y van a la cola de Revisión de Discourse. Al aprobar, el video toma su privacidad final y quien lo subió recibe un mensaje con el enlace; al rechazar, se borra de PeerTube. Los grupos de `peertube_embed_upload_review_skip_groups` (staff por defecto) no pasan por revisión.
+  - **Insignia Videonauta**: se otorga por cada subida publicada (con contador); se puede renombrar o cambiar en Admin → Insignias.
   - La privacidad sigue a la categoría: categorías públicas → Pública, categorías restringidas → No listada.
   - Toda subida recibe la categoría de PeerTube elegida en `peertube_embed_upload_category` (por ejemplo "Comunidad").
 - **Miniaturas en la lista de temas** para los temas con un video de PeerTube, con ▶ o EN VIVO superpuesto.
@@ -71,6 +73,9 @@ Requiere Discourse 2026.9 o posterior (usa las rutas actuales de módulos del fr
 | `peertube_embed_upload_category_channels` | — | Pares opcionales `slug-de-categoría:canal`. |
 | `peertube_embed_upload_category` | — | Categoría de PeerTube para toda subida, elegida entre las de la instancia. |
 | `peertube_embed_upload_allowed_groups` | admins, moderadores, NC2 | Quién puede subir. |
+| `peertube_embed_upload_review_enabled` | false | Retener las subidas hasta que un moderador las apruebe. |
+| `peertube_embed_upload_review_skip_groups` | staff | Grupos cuyas subidas no pasan por revisión. |
+| `peertube_embed_upload_badge_enabled` | true | Otorgar la insignia Videonauta por subida publicada. |
 | `peertube_embed_upload_max_size_mb` | 0 | Límite en MB; 0 = sin límite (deciden la cuota y los límites de PeerTube). |
 
 Después de agregar una instancia, volvé a procesar los posts que ya la enlazan para que tengan el nuevo onebox y queden indexados:

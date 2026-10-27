@@ -33,6 +33,7 @@ en:
         title_label: "Title"
         channel_label: "Channel"
         description_label: "Description (optional)"
+        pending_review: "Your video is waiting for review. We will send you a message with its link once it is approved."
         max_size: "Up to %{size} MB. PeerTube processes the video after the upload; its card appears when it is ready."
         processing_note: "PeerTube processes the video after the upload; its card appears when it is ready."
         upload: "Upload"
@@ -55,6 +56,10 @@ en:
         views:
           one: "%{count} view"
           other: "%{count} views"
+      review:
+        type_label: "PeerTube video"
+        uploaded_by: "Uploaded by"
+        channel: "Channel"
       modal:
         open_topic:
           one: "View in forum · %{count} reply"

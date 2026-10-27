@@ -18,6 +18,9 @@ es:
     peertube_embed_upload_category: "Categoría de PeerTube que reciben todos los videos subidos desde el foro. La lista viene de la instancia principal."
     peertube_embed_upload_allowed_groups: "Grupos que pueden subir videos a PeerTube."
     peertube_embed_upload_max_size_mb: "Tamaño máximo de video en MB para las subidas. 0 significa sin límite acá; la cuota y los límites de PeerTube siguen aplicando."
+    peertube_embed_upload_review_enabled: "Enviar los videos subidos desde el foro a la cola de revisión. Quedan no listados en PeerTube hasta que un moderador los aprueba."
+    peertube_embed_upload_review_skip_groups: "Grupos cuyas subidas no pasan por revisión."
+    peertube_embed_upload_badge_enabled: "Otorgar la insignia Videonauta por cada subida publicada."
   peertube_embed:
     upload_errors:
       not_allowed: "No tenés permiso para subir videos."
@@ -33,3 +36,28 @@ es:
       offset_mismatch: "La subida se desincronizó y se va a retomar."
       invalid_chunk: "Datos de subida inválidos."
       failed: "PeerTube rechazó la subida."
+  discourse_peertube_embed:
+    reviewables:
+      actions:
+        approve_video:
+          title: "aprobar video"
+          description: "Publica el video en PeerTube con su privacidad final y avisa a quien lo subió."
+          complete: "Video aprobado y publicado."
+        reject_video:
+          title: "rechazar video"
+          confirm: "¿Rechazar este video? Se va a borrar de PeerTube."
+          complete: "Video rechazado; se está borrando de PeerTube."
+  badges:
+    videonauta:
+      name: "Videonauta"
+      description: "Compartió un video con la comunidad desde nuestro PeerTube."
+      long_description: "Se otorga por cada video subido desde el foro y publicado en nuestra instancia PeerTube."
+  system_messages:
+    peertube_video_approved:
+      title: "Tu video fue aprobado"
+      subject_template: "Tu video fue aprobado"
+      text_body_template: "Tu video ya está publicado:\n\n%{url}\n\nPodés compartirlo en un tema cuando quieras."
+    peertube_video_rejected:
+      title: "Tu video no fue aprobado"
+      subject_template: "Tu video no fue aprobado"
+      text_body_template: "Un moderador no aprobó tu video \"%{title}\", así que se quitó de PeerTube."

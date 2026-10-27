@@ -5,9 +5,9 @@ module ::DiscoursePeertube
     engine_name PLUGIN_NAME
     isolate_namespace DiscoursePeertube
     config.autoload_paths << File.join(config.root, "lib")
-    scheduled_job_dir = "#{config.root}/app/jobs/scheduled"
+    job_dirs = %w[scheduled regular].map { |kind| "#{config.root}/app/jobs/#{kind}" }
     config.to_prepare do
-      Rails.autoloaders.main.eager_load_dir(scheduled_job_dir) if Dir.exist?(scheduled_job_dir)
+      job_dirs.each { |dir| Rails.autoloaders.main.eager_load_dir(dir) if Dir.exist?(dir) }
     end
   end
 end

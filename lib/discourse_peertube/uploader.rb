@@ -96,10 +96,16 @@ module ::DiscoursePeertube
         channel_id = owned.find { |c| c[:name] == channel }&.dig(:id)
         raise Error.new(:invalid_channel) if channel_id.nil?
       else
-        default = channel_for(category)
-        channel_id = owned.find { |c| c[:name] == default }&.dig(:id)
+        channel = channel_for(category)
+        channel_id = owned.find { |c| c[:name] == channel }&.dig(:id)
         raise Error.new(:no_channel) if channel_id.nil?
       end
+
+      # Videos waiting for review stay unlisted until approved.
+      review = review_required?(user)
+      privacy = privacy_for(category)
+      title = video_name(name, filename)
+      description = video_description(description)
 
       response =
         authorized_request(
@@ -111,13 +117,13 @@ module ::DiscoursePeertube
             "X-Upload-Content-Type" => mime.to_s,
           },
           body: {
-            name: video_name(name, filename),
+            name: title,
             channelId: channel_id,
-            privacy: privacy_for(category),
+            privacy: review ? PRIVACY_UNLISTED : privacy,
             filename: File.basename(filename.to_s).presence || "video",
             waitTranscoding: false,
             category: SiteSetting.peertube_embed_upload_category.presence&.to_i,
-            description: video_description(description),
+            description: description,
           }.compact.to_json,
         )
 
@@ -143,11 +149,17 @@ module ::DiscoursePeertube
         "host" => InstanceClient.host,
         "size" => size,
         "offset" => 0,
+        "title" => title,
+        "description" => description,
+        "channel" => channel,
+        "privacy" => privacy,
+        "review" => review,
       )
       { id: id, chunk_size: CHUNK_SIZE }
     end
 
-    # Forwards one chunk. Returns { done: false, offset: } or { done: true, url: }.
+    # Forwards one chunk. Returns { done: false, offset: }, { done: true, url: }
+    # or, when the video waits for review, { done: true, pending: true }.
     def self.append(user:, id:, offset:, data:)
       session = load_session(id, user)
       if offset != session["offset"]
@@ -188,10 +200,67 @@ module ::DiscoursePeertube
         raise Error.new(:failed) if !video_id.to_s.match?(/\A[a-zA-Z0-9-]{1,64}\z/)
 
         Discourse.redis.del(session_key(id))
-        { done: true, url: "https://#{session["host"]}/w/#{video_id}" }
+        finish(user, session, video_id)
       else
         raise Error.new(:failed)
       end
+    end
+
+    def self.review_required?(user)
+      SiteSetting.peertube_embed_upload_review_enabled &&
+        !user.in_any_groups?(SiteSetting.peertube_embed_upload_review_skip_groups_map)
+    end
+
+    # Records the finished upload, then queues it or publishes it right away.
+    # The link is only returned once the video is published.
+    def self.finish(user, session, video_id)
+      upload =
+        VideoUpload.create!(
+          user_id: user.id,
+          host: session["host"],
+          video_id: video_id,
+          title: session["title"],
+          description: session["description"],
+          channel: session["channel"],
+          privacy: session["privacy"] || PRIVACY_PUBLIC,
+          status: session["review"] ? :pending : :approved,
+        )
+
+      if upload.pending?
+        ReviewableVideo.queue!(upload)
+        { done: true, pending: true }
+      else
+        VideoBadge.grant(user)
+        { done: true, url: upload.watch_url }
+      end
+    end
+
+    # Gives an approved video its final privacy. Raises :gone when the video
+    # no longer exists on PeerTube.
+    def self.publish!(upload)
+      response =
+        authorized_request(
+          :put,
+          "/api/v1/videos/#{CGI.escape(upload.video_id)}",
+          host: upload.host,
+          headers: {
+            "Content-Type" => "application/json",
+          },
+          body: { privacy: upload.privacy }.to_json,
+        )
+      return if %w[200 204].include?(response.code)
+
+      raise Error.new(response.code == "404" ? :gone : :failed)
+    end
+
+    def self.delete!(upload)
+      response =
+        authorized_request(
+          :delete,
+          "/api/v1/videos/#{CGI.escape(upload.video_id)}",
+          host: upload.host,
+        )
+      raise Error.new(:failed) if !%w[200 204 404].include?(response.code)
     end
 
     def self.cancel(user:, id:)

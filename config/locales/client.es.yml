@@ -33,6 +33,7 @@ es:
         title_label: "Título"
         channel_label: "Canal"
         description_label: "Descripción (opcional)"
+        pending_review: "Tu video quedó en revisión. Te mandamos un mensaje con el enlace cuando se apruebe."
         max_size: "Hasta %{size} MB. PeerTube procesa el video después de subirlo; la tarjeta aparece cuando está listo."
         processing_note: "PeerTube procesa el video después de subirlo; la tarjeta aparece cuando está listo."
         upload: "subir"
@@ -55,6 +56,10 @@ es:
         views:
           one: "%{count} vista"
           other: "%{count} vistas"
+      review:
+        type_label: "Video de PeerTube"
+        uploaded_by: "Subido por"
+        channel: "Canal"
       modal:
         open_topic:
           one: "ver en el foro · %{count} respuesta"

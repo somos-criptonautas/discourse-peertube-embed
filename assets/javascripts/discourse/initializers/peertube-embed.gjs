@@ -1,7 +1,9 @@
+import { registerReviewableTypeLabel } from "discourse/components/reviewable/item";
 import { withPluginApi } from "discourse/lib/plugin-api";
 import { i18n } from "discourse-i18n";
 import PeertubeInsert from "../components/modal/peertube-insert";
 import PeertubePlayer from "../components/peertube-player";
+import ReviewablePeertubeVideo from "../components/reviewable/peertube-video";
 import {
   attributesFromOnebox,
   attributesFromUrl,
@@ -9,6 +11,7 @@ import {
 } from "../lib/peertube-url";
 
 const ONEBOX_SELECTOR = "div.peertube-onebox";
+const REVIEWABLE_TYPE = "DiscoursePeertube::ReviewableVideo";
 // discourse-events renders the event's livestream onebox in this section.
 const EVENT_LIVESTREAM_SELECTOR = ".event-livestream";
 
@@ -141,6 +144,15 @@ export default {
           watchEventLivestream(cooked, helper, api, siteSettings);
         },
         { onlyStream: true }
+      );
+
+      api.registerReviewableComponent(
+        REVIEWABLE_TYPE,
+        () => ReviewablePeertubeVideo
+      );
+      registerReviewableTypeLabel(
+        REVIEWABLE_TYPE,
+        "peertube_embed.review.type_label"
       );
 
       if (siteSettings.peertube_embed_composer_button) {

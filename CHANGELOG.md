@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Optional review of forum uploads in Discourse's Review queue (unlisted until approved; rejected videos are deleted from PeerTube; uploader gets a message).
+- Videonaut (Videonauta) badge, granted for every published upload.
 - Event livestream card: full player with live badge and theater mode; the event's PeerTube livestream is indexed with the post so its live state refreshes.
 - Browser (system) tests for click-to-play, `/videos` filtering and the upload window's channel picker.
 - Upload window: channel picker (only the upload account's channels, checked on the server) and an optional description, from the composer and from `/videos`.

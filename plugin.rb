@@ -29,6 +29,7 @@ require_relative "lib/discourse_peertube/onebox_renderer"
 require_relative "lib/discourse_peertube/instance_client"
 require_relative "lib/discourse_peertube/upload_category_setting"
 require_relative "lib/discourse_peertube/uploader"
+require_relative "lib/discourse_peertube/video_badge"
 require_relative "lib/onebox/engine/peertube_onebox"
 
 after_initialize do
@@ -55,6 +56,8 @@ after_initialize do
   add_model_callback(:post, :after_destroy) do
     DiscoursePeertube::Video.where(post_id: id).delete_all
   end
+
+  register_reviewable_type DiscoursePeertube::ReviewableVideo
 
   add_to_serializer(:current_user, :can_upload_peertube_videos) do
     DiscoursePeertube::Uploader.allowed?(object)

@@ -35,6 +35,7 @@ export default class PeertubeInsert extends Component {
   @tracked channels = [];
   @tracked channel = null;
   @tracked description = "";
+  @tracked pendingReview = false;
 
   sessionId = null;
   cancelled = false;
@@ -78,7 +79,7 @@ export default class PeertubeInsert extends Component {
   }
 
   get canUploadAndLink() {
-    return this.canUpload && this.fromComposer;
+    return this.canUpload && this.fromComposer && !this.pendingReview;
   }
 
   get fromComposer() {
@@ -201,7 +202,11 @@ export default class PeertubeInsert extends Component {
         const result = await this.sendChunk(file, offset, session.chunk_size);
         if (result.done) {
           this.sessionId = null;
-          this.insertUrl(result.url);
+          if (result.pending) {
+            this.pendingReview = true;
+          } else {
+            this.insertUrl(result.url);
+          }
           return;
         }
         offset = result.offset;
@@ -309,7 +314,11 @@ export default class PeertubeInsert extends Component {
           </div>
         {{/if}}
 
-        {{#if (eq this.tab "upload")}}
+        {{#if this.pendingReview}}
+          <p class="peertube-insert-modal__pending">
+            {{i18n "peertube_embed.composer.pending_review"}}
+          </p>
+        {{else if (eq this.tab "upload")}}
           <form {{on "submit" this.upload}}>
             <label for="peertube-upload-file">
               {{i18n "peertube_embed.composer.file_label"}}
@@ -404,7 +413,9 @@ export default class PeertubeInsert extends Component {
         {{/if}}
       </:body>
       <:footer>
-        {{#if (eq this.tab "upload")}}
+        {{#if this.pendingReview}}
+          <DButton class="btn-primary" @label="close" @action={{@closeModal}} />
+        {{else if (eq this.tab "upload")}}
           {{#if this.uploading}}
             <DButton
               class="btn-danger"
