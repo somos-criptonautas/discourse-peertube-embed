@@ -103,9 +103,10 @@ RSpec.describe DiscoursePeertube::VideosController do
     end
 
     it "holds back videos of topics locked by category lockdown" do
+      locked = [public_post.topic.category_id]
       lockdown = Module.new
       lockdown.define_singleton_method(:locked_category_ids) do |guardian|
-        guardian.user ? [] : [public_post.topic.category_id]
+        guardian.user ? [] : locked
       end
 
       stub_const(Object, :CategoryLockdown, lockdown) do

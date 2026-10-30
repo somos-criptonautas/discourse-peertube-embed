@@ -132,8 +132,9 @@ RSpec.describe DiscoursePeertube::UploadsController do
   end
 
   it "uses unlisted privacy for categories locked by category lockdown" do
+    locked = [category.id]
     lockdown = Module.new
-    lockdown.define_singleton_method(:locked_category_ids) { |_guardian| [category.id] }
+    lockdown.define_singleton_method(:locked_category_ids) { |_guardian| locked }
     init = stub_init
     sign_in(user)
 
