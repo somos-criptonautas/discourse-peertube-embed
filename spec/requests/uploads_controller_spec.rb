@@ -132,12 +132,12 @@ RSpec.describe DiscoursePeertube::UploadsController do
   end
 
   it "uses unlisted privacy for categories locked by category lockdown" do
-    stub_const("CategoryLockdown", Module.new)
-    allow(CategoryLockdown).to receive(:locked_category_ids).and_return([category.id])
+    lockdown = Module.new
+    lockdown.define_singleton_method(:locked_category_ids) { |_guardian| [category.id] }
     init = stub_init
     sign_in(user)
 
-    start_upload(category_id: category.id)
+    stub_const(Object, :CategoryLockdown, lockdown) { start_upload(category_id: category.id) }
     expect(response.status).to eq(200)
     expect(init.with(body: hash_including("channelId" => 9, "privacy" => 2))).to have_been_requested
   end
