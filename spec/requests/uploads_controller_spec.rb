@@ -131,6 +131,58 @@ RSpec.describe DiscoursePeertube::UploadsController do
     expect(init.with(body: hash_including("channelId" => 7, "privacy" => 2))).to have_been_requested
   end
 
+  it "uses unlisted privacy for categories locked by category lockdown" do
+    locked = [category.id]
+    lockdown = Module.new
+    lockdown.define_singleton_method(:locked_category_ids) { |_guardian| locked }
+    init = stub_init
+    sign_in(user)
+
+    stub_const(Object, :CategoryLockdown, lockdown) { start_upload(category_id: category.id) }
+    expect(response.status).to eq(200)
+    expect(init.with(body: hash_including("channelId" => 9, "privacy" => 2))).to have_been_requested
+  end
+
+  it "only offers and accepts channels mapped to categories the user can read" do
+    SiteSetting.peertube_embed_upload_category_channels = "#{private_category.slug}:trading-channel"
+    init = stub_init
+    sign_in(user)
+
+    get "/peertube/uploads/channels.json"
+    expect(response.parsed_body["channels"].map { |c| c["name"] }).to eq(["comunidad"])
+
+    start_upload(channel: "trading-channel")
+    expect(response.status).to eq(422)
+    expect(init).not_to have_been_requested
+
+    group.add(user)
+    get "/peertube/uploads/channels.json"
+    expect(response.parsed_body["channels"].map { |c| c["name"] }).to include("trading-channel")
+  end
+
+  it "finds videos in locked categories that are still public" do
+    public_video = Fabricate(:post, topic: Fabricate(:topic, category: category))
+    DiscoursePeertube::Video.create!(post: public_video, host: host, uuid: "still-public")
+    DiscoursePeertube::Video.create!(post: public_video, host: host, uuid: "unlisted", position: 1)
+    stub_request(:get, "#{api}/videos/still-public").to_return(
+      status: 200,
+      body: { uuid: "still-public", privacy: { id: 1 } }.to_json,
+    )
+    stub_request(:get, "#{api}/videos/unlisted").to_return(
+      status: 200,
+      body: { uuid: "unlisted", privacy: { id: 2 } }.to_json,
+    )
+
+    locked = [category.id]
+    lockdown = Module.new
+    lockdown.define_singleton_method(:locked_category_ids) { |_guardian| locked }
+
+    stub_const(Object, :CategoryLockdown, lockdown) do
+      expect(DiscoursePeertube::Uploader.public_locked_videos).to eq(["still-public"])
+    end
+    expect(DiscoursePeertube::Uploader.public_locked_videos).to eq([])
+  end
+
   it "files every upload under the configured PeerTube category" do
     SiteSetting.peertube_embed_upload_category = "100"
     init = stub_init

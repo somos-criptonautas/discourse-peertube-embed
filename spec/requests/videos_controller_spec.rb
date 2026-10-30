@@ -102,6 +102,27 @@ RSpec.describe DiscoursePeertube::VideosController do
       expect(topic["peertube_video"]["uuid"]).to eq("public")
     end
 
+    it "holds back videos of topics locked by category lockdown" do
+      locked = [public_post.topic.category_id]
+      lockdown = Module.new
+      lockdown.define_singleton_method(:locked_category_ids) do |guardian|
+        guardian.user ? [] : locked
+      end
+
+      stub_const(Object, :CategoryLockdown, lockdown) do
+        get "/latest.json"
+        topic =
+          response.parsed_body["topic_list"]["topics"].find { |t| t["id"] == public_post.topic_id }
+        expect(topic).not_to have_key("peertube_video")
+
+        sign_in(member)
+        get "/latest.json"
+        topic =
+          response.parsed_body["topic_list"]["topics"].find { |t| t["id"] == public_post.topic_id }
+        expect(topic["peertube_video"]["uuid"]).to eq("public")
+      end
+    end
+
     it "omits the video when thumbnails are turned off" do
       SiteSetting.peertube_embed_topic_list_thumbnails = false
       get "/latest.json"
