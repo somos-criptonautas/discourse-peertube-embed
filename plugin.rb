@@ -20,6 +20,12 @@ register_svg_icon "tower-broadcast"
 
 module ::DiscoursePeertube
   PLUGIN_NAME = "discourse-peertube-embed"
+
+  # Categories discourse-category-lockdown hides from this guardian; every locked one for
+  # an anonymous guardian. Locked topics stay listed, so their videos must be held back.
+  def self.locked_category_ids(guardian)
+    defined?(::CategoryLockdown) ? ::CategoryLockdown.locked_category_ids(guardian) : []
+  end
 end
 
 require_relative "lib/discourse_peertube/engine"
@@ -66,12 +72,15 @@ after_initialize do
   add_to_class(:topic, :peertube_video) { @peertube_video }
   add_to_class(:topic, :peertube_video=) { |video| @peertube_video = video }
 
-  TopicList.on_preload do |topics, _topic_list|
+  TopicList.on_preload do |topics, topic_list|
     next if !SiteSetting.peertube_embed_enabled || !SiteSetting.peertube_embed_topic_list_thumbnails
     next if topics.blank?
 
     videos = DiscoursePeertube::Video.first_per_topic(topics.map(&:id))
-    topics.each { |topic| topic.peertube_video = videos[topic.id] || false }
+    locked = DiscoursePeertube.locked_category_ids(Guardian.new(topic_list.current_user))
+    topics.each do |topic|
+      topic.peertube_video = (!locked.include?(topic.category_id) && videos[topic.id]) || false
+    end
   end
 
   add_to_serializer(

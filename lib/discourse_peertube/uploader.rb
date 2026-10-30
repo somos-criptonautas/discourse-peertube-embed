@@ -54,10 +54,15 @@ module ::DiscoursePeertube
       name if InstanceClient.valid_channel_name?(name)
     end
 
-    # Restricted categories get unlisted videos, so they stay off the
-    # instance home page.
+    # Restricted and locked categories get unlisted videos, so they stay off
+    # the instance home page and the /videos gallery.
     def self.privacy_for(category)
-      category&.read_restricted? ? PRIVACY_UNLISTED : PRIVACY_PUBLIC
+      return PRIVACY_PUBLIC if category.nil?
+
+      restricted =
+        category.read_restricted? ||
+          DiscoursePeertube.locked_category_ids(Guardian.new).include?(category.id)
+      restricted ? PRIVACY_UNLISTED : PRIVACY_PUBLIC
     end
 
     # Channels the upload account owns, the only ones it can upload to:
