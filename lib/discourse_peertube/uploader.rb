@@ -35,23 +35,44 @@ module ::DiscoursePeertube
         user.in_any_groups?(SiteSetting.peertube_embed_upload_allowed_groups_map)
     end
 
+    # { "slug or id" => channel } from the category channels setting.
+    def self.category_channels
+      SiteSetting
+        .peertube_embed_upload_category_channels
+        .to_s
+        .split("|")
+        .filter_map do |entry|
+          key, value = entry.split(":", 2).map(&:strip)
+          [key, value] if key.present? && value.present?
+        end
+        .to_h
+    end
+
     # Channel for a category: its "slug:channel" mapping, else the default.
     def self.channel_for(category)
-      mapping =
-        SiteSetting
-          .peertube_embed_upload_category_channels
-          .to_s
-          .split("|")
-          .filter_map do |entry|
-            key, value = entry.split(":", 2).map(&:strip)
-            [key, value] if key.present? && value.present?
-          end
-          .to_h
-
+      mapping = category_channels
       name =
         (category && (mapping[category.slug] || mapping[category.id.to_s])) ||
           SiteSetting.peertube_embed_upload_channel.to_s.strip.presence
       name if InstanceClient.valid_channel_name?(name)
+    end
+
+    # Channels the user may pick: a channel mapped to categories needs one
+    # they can read, so nobody files a video under a category closed to them.
+    def self.channels_for(user)
+      guardian = Guardian.new(user)
+      locked = DiscoursePeertube.locked_category_ids(guardian)
+      mapped = category_channels.group_by(&:last).transform_values { |pairs| pairs.map(&:first) }
+
+      channels.select do |channel|
+        keys = mapped[channel[:name]]
+        next true if keys.nil?
+
+        Category
+          .where(slug: keys)
+          .or(Category.where(id: keys.grep(/\A\d+\z/).map(&:to_i)))
+          .any? { |category| guardian.can_see_category?(category) && locked.exclude?(category.id) }
+      end
     end
 
     # Restricted and locked categories get unlisted videos, so they stay off
@@ -96,13 +117,12 @@ module ::DiscoursePeertube
       max_mb = SiteSetting.peertube_embed_upload_max_size_mb
       raise Error.new(:too_large) if max_mb.positive? && size > max_mb * 1024 * 1024
 
-      owned = channels
       if channel.present?
-        channel_id = owned.find { |c| c[:name] == channel }&.dig(:id)
+        channel_id = channels_for(user).find { |c| c[:name] == channel }&.dig(:id)
         raise Error.new(:invalid_channel) if channel_id.nil?
       else
         channel = channel_for(category)
-        channel_id = owned.find { |c| c[:name] == channel }&.dig(:id)
+        channel_id = channels.find { |c| c[:name] == channel }&.dig(:id)
         raise Error.new(:no_channel) if channel_id.nil?
       end
 
@@ -243,19 +263,41 @@ module ::DiscoursePeertube
     # Gives an approved video its final privacy. Raises :gone when the video
     # no longer exists on PeerTube.
     def self.publish!(upload)
+      set_privacy(upload.host, upload.video_id, upload.privacy)
+    end
+
+    def self.set_privacy(host, video_id, privacy)
       response =
         authorized_request(
           :put,
-          "/api/v1/videos/#{CGI.escape(upload.video_id)}",
-          host: upload.host,
+          "/api/v1/videos/#{CGI.escape(video_id)}",
+          host: host,
           headers: {
             "Content-Type" => "application/json",
           },
-          body: { privacy: upload.privacy }.to_json,
+          body: { privacy: privacy }.to_json,
         )
       return if %w[200 204].include?(response.code)
 
       raise Error.new(response.code == "404" ? :gone : :failed)
+    end
+
+    # Videos posted in locked categories that are still public on the home
+    # instance: uploads from before locked categories became unlisted.
+    def self.public_locked_videos
+      host = InstanceClient.host
+      locked = DiscoursePeertube.locked_category_ids(Guardian.new)
+      return [] if host.nil? || locked.empty?
+
+      Video
+        .joins(post: :topic)
+        .where(host: host, kind: "video", topics: { category_id: locked })
+        .distinct
+        .pluck(:uuid)
+        .select do |uuid|
+          json = ApiClient.get_json(host, "/api/v1/videos/#{uuid}")
+          ApiClient.dig(json, "privacy", "id") == PRIVACY_PUBLIC
+        end
     end
 
     def self.delete!(upload)

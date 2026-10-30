@@ -39,7 +39,7 @@ module ::DiscoursePeertube
       raise Discourse::InvalidAccess if !Uploader.allowed?(current_user)
 
       render json: {
-               channels: Uploader.channels.map { |c| c.slice(:name, :display_name) },
+               channels: Uploader.channels_for(current_user).map { |c| c.slice(:name, :display_name) },
                default: Uploader.channel_for(category_param),
              }
     end
